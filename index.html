@@ -64,7 +64,7 @@
             color: var(--primary-color);
         }
 
-        .calendar-section {
+        .calendar-section, .admin-section {
             background-color: var(--card-background);
             padding: 1.5rem;
             border-radius: 12px;
@@ -160,7 +160,7 @@
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000; /* 增加z-index以確保彈窗在最上層 */
+            z-index: 1000;
             left: 0;
             top: 0;
             width: 100%;
@@ -223,7 +223,7 @@
             color: white;
         }
 
-        .confirm-button {
+        .confirm-button, .search-button, .delete-button {
             display: block;
             width: 100%;
             padding: 1rem;
@@ -235,6 +235,23 @@
             font-size: 1rem;
             cursor: pointer;
             transition: background-color 0.3s;
+        }
+        
+        .search-button {
+            background-color: #f44336; /* 紅色 */
+        }
+        
+        .delete-button {
+            background-color: #dc3545; /* 警告紅色 */
+            width: auto;
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .search-button:hover {
+            background-color: #d32f2f;
         }
 
         .confirm-button:disabled {
@@ -259,7 +276,29 @@
             border-radius: 8px;
             margin-top: 1rem;
             text-align: center;
-            display: none; /* 預設隱藏 */
+            display: none;
+        }
+        
+        .admin-section .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .admin-section input {
+            width: calc(100% - 1rem);
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        
+        #search-results p {
+            margin: 0.5rem 0;
+            padding: 0.75rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 5px solid var(--primary-color);
         }
         
         @media (max-width: 600px) {
@@ -271,7 +310,7 @@
                 font-size: 1.5rem;
             }
             
-            .coach-info, .calendar-section {
+            .coach-info, .calendar-section, .admin-section {
                 padding: 1rem;
             }
             
@@ -282,6 +321,10 @@
             
             .modal-content {
                 padding: 1.5rem;
+            }
+            
+            .delete-button {
+                margin-top: 0;
             }
         }
     </style>
@@ -294,8 +337,7 @@
 
     <main class="container">
         <section class="coach-info">
-            <!-- 替換為你的教練圖片 URL -->
-            <img src="image.png" alt="蝦仁教練" class="coach-photo">
+            <img src="https://placehold.co/150x150/007bff/ffffff?text=Coach" alt="蝦仁教練" class="coach-photo">
             <h2>蝦仁教練</h2>
             <p>你好！我是蝦仁教練，擁有十年游泳教學經驗，擅長兒童、成人游泳基礎教學及各項泳姿調整。期待在泳池與你相見！</p>
         </section>
@@ -327,6 +369,25 @@
                 <div class="weekday">四</div>
                 <div class="weekday">五</div>
                 <div class="weekday">六</div>
+            </div>
+        </section>
+        
+        <!-- 新增的管理員功能區塊 -->
+        <section id="admin-section" class="admin-section">
+            <h2>管理員功能：查詢及刪除預約</h2>
+            <p>輸入已預約的姓名和電話以查詢預約資料。</p>
+            <div class="form-group">
+                <label for="admin-name">姓名：</label>
+                <input type="text" id="admin-name">
+            </div>
+            <div class="form-group">
+                <label for="admin-phone">電話：</label>
+                <input type="tel" id="admin-phone">
+            </div>
+            <button id="search-booking-btn" class="search-button">查詢預約</button>
+            
+            <div id="search-results">
+                <!-- 查詢結果會顯示在這裡 -->
             </div>
         </section>
         
@@ -366,7 +427,7 @@
         // 使用 Firebase v9 模組化語法，確保語法一致性
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
         // 你的 Firebase 設定，請確保這是你專案的正確設定
         const firebaseConfig = {
@@ -406,6 +467,12 @@
             const confirmBookingBtn = document.getElementById('confirm-booking');
             
             const firebaseErrorDiv = document.getElementById('firebase-error-message');
+            
+            // 新增的管理員功能相關元素
+            const adminNameInput = document.getElementById('admin-name');
+            const adminPhoneInput = document.getElementById('admin-phone');
+            const searchBookingBtn = document.getElementById('search-booking-btn');
+            const searchResultsDiv = document.getElementById('search-results');
 
             // 初始化日期變數
             let currentMonth = new Date().getMonth();
@@ -423,14 +490,11 @@
             userInfoModal.style.display = 'flex';
 
             // 匿名登入並處理成功或失敗
-            // 這個步驟是必要的，因為 Firestore 的規則要求使用者必須經過認證
             signInAnonymously(auth).then(() => {
                 console.log("匿名登入成功！");
-                // 成功登入後才渲染日曆，避免權限錯誤
                 renderCalendar();
             }).catch((error) => {
                 console.error("匿名登入失敗:", error);
-                // 如果匿名登入失敗，顯示自定義的錯誤訊息，引導使用者解決問題
                 firebaseErrorDiv.style.display = 'block';
             });
 
@@ -475,10 +539,8 @@
                 const formattedMonth = String(currentMonth + 1).padStart(2, '0');
                 
                 try {
-                    // 修正問題：Firestore 複合查詢需要索引，但我們無法在 Canvas 中建立。
-                    // 解決方法：我們只使用日期範圍查詢，然後在 JavaScript 中手動過濾 `isBooked` 欄位。
                     const schedulesCollection = collection(db, 'schedules');
-                    // 簡化 Firestore 查詢，只根據日期範圍獲取文件
+                    // 修正問題：避免使用複合查詢以防需要建立索引
                     const q = query(
                         schedulesCollection,
                         where('date', '>=', `${currentYear}-${formattedMonth}-01`),
@@ -489,7 +551,6 @@
                     const bookedSlotsByDate = {};
                     querySnapshot.forEach(doc => {
                         const slot = doc.data();
-                        // 在 JavaScript 中過濾已預約的時段
                         if (slot.isBooked) {
                             const slotDate = slot.date;
                             if (!bookedSlotsByDate[slotDate]) {
@@ -499,14 +560,12 @@
                         }
                     });
                     
-                    // 渲染空白日期
                     for (let i = 0; i < firstDayOfMonth; i++) {
                         const emptyDay = document.createElement('div');
                         emptyDay.classList.add('day', 'empty-day');
                         calendarGrid.appendChild(emptyDay);
                     }
 
-                    // 渲染當月所有日期
                     for (let i = 1; i <= daysInMonth; i++) {
                         const day = document.createElement('div');
                         day.classList.add('day');
@@ -529,10 +588,8 @@
                             day.classList.add('has-slots');
                             day.addEventListener('click', () => {
                                 if (!userName || !userPhone) {
-                                    // 如果使用者資訊未填寫，先顯示使用者資訊彈窗
                                     userInfoModal.style.display = 'flex';
                                 } else {
-                                    // 否則顯示預約時段彈窗
                                     showBookingModal(formattedDate, unbookedSlots);
                                 }
                             });
@@ -594,7 +651,6 @@
                         alert("預約失敗，請稍後再試。");
                     }
                 } else {
-                    // 如果使用者資訊在預約前被清空，再次提示並顯示彈窗
                     alert('請先填寫您的姓名和電話。');
                     bookingModal.style.display = 'none';
                     userInfoModal.style.display = 'flex';
@@ -638,11 +694,88 @@
                     bookingModal.style.display = 'none';
                 }
             };
+            
+            // ----------------------------------------------------------------
+            // 新增的管理員功能邏輯
+            // ----------------------------------------------------------------
+            searchBookingBtn.addEventListener('click', searchBookings);
 
+            async function searchBookings() {
+                const name = adminNameInput.value.trim();
+                const phone = adminPhoneInput.value.trim();
+                
+                if (!name || !phone) {
+                    alert('請同時輸入姓名和電話以進行查詢。');
+                    return;
+                }
+                
+                searchResultsDiv.innerHTML = '正在查詢中...';
+                
+                try {
+                    const schedulesCollection = collection(db, 'schedules');
+                    // 為了避免複合索引錯誤，我們只用電話號碼進行查詢
+                    const q = query(schedulesCollection, where('userPhone', '==', phone));
+                    const querySnapshot = await getDocs(q);
+                    
+                    const results = [];
+                    querySnapshot.forEach(doc => {
+                        const booking = doc.data();
+                        // 在客戶端驗證姓名是否相符
+                        if (booking.userName === name) {
+                            results.push({ id: doc.id, ...booking });
+                        }
+                    });
+                    
+                    displaySearchResults(results);
+                } catch (error) {
+                    console.error("查詢預約失敗:", error);
+                    searchResultsDiv.innerHTML = '<p>查詢預約時發生錯誤，請稍後再試。</p>';
+                }
+            }
+
+            function displaySearchResults(results) {
+                searchResultsDiv.innerHTML = '';
+                if (results.length === 0) {
+                    searchResultsDiv.innerHTML = '<p>找不到符合條件的預約。</p>';
+                    return;
+                }
+                
+                results.forEach(booking => {
+                    const resultDiv = document.createElement('p');
+                    resultDiv.innerHTML = `
+                        ${booking.userName} (${booking.userPhone}) 預約了 ${booking.date} ${booking.time}
+                        <button class="delete-button" data-id="${booking.id}">刪除</button>
+                    `;
+                    searchResultsDiv.appendChild(resultDiv);
+                });
+                
+                // 為每個刪除按鈕添加事件監聽器
+                document.querySelectorAll('.delete-button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const docId = e.target.getAttribute('data-id');
+                        if (confirm('確定要刪除這筆預約嗎？')) {
+                            deleteBooking(docId);
+                        }
+                    });
+                });
+            }
+            
+            async function deleteBooking(docId) {
+                try {
+                    const bookingDocRef = doc(db, 'schedules', docId);
+                    await deleteDoc(bookingDocRef);
+                    alert('預約已成功刪除！');
+                    searchBookings(); // 刪除後重新查詢
+                    renderCalendar(); // 重新渲染日曆以更新顯示
+                } catch (error) {
+                    console.error("刪除預約失敗:", error);
+                    alert('刪除預約失敗，請稍後再試。');
+                }
+            }
+            
             // 網頁載入時初始化
             initYearSelect();
         });
     </script>
 </body>
 </html>
-
