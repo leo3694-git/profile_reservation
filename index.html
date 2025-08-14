@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蝦仁教練 游泳課程預約</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="header">
+        <h1>蝦仁教練 游泳課程預約</h1>
+    </header>
+
+    <main class="container">
+        <section class="coach-info">
+            <img src="coach.png" alt="蝦仁教練" class="coach-photo">
+            <h2>蝦仁教練</h2>
+            <p>你好！我是蝦仁教練，擁有十年游泳教學經驗，擅長兒童、成人游泳基礎教學及各項泳姿調整。期待在泳池與你相見！</p>
+        </section>
+
+        <section class="calendar-section">
+            <div class="calendar-header">
+                <button id="prev-month">&lt;</button>
+                <h2 id="current-month-year"></h2>
+                <button id="next-month">&gt;</button>
+            </div>
+            
+            <div class="calendar-controls">
+                <label for="year-select">選擇年份:</label>
+                <select id="year-select"></select>
+            </div>
+
+            <div class="calendar-grid">
+                <div class="weekday">日</div>
+                <div class="weekday">一</div>
+                <div class="weekday">二</div>
+                <div class="weekday">三</div>
+                <div class="weekday">四</div>
+                <div class="weekday">五</div>
+                <div class="weekday">六</div>
+                </div>
+        </section>
+        
+        <div id="booking-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h3>預約 <span id="modal-date"></span> 的課程</h3>
+                <div id="time-slots">
+                    </div>
+                <button id="confirm-booking" class="confirm-button" disabled>確認預約</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
