@@ -214,13 +214,20 @@
             transition: background-color 0.2s, color 0.2s;
         }
 
-        .time-slot:hover {
+        .time-slot:hover:not(.full) {
             background-color: #ddd;
         }
 
         .time-slot.selected {
             background-color: var(--accent-color);
             color: white;
+        }
+        
+        .time-slot.full {
+            background-color: #ccc;
+            color: #666;
+            cursor: not-allowed;
+            text-decoration: line-through;
         }
 
         .confirm-button, .search-button, .delete-button {
@@ -238,11 +245,11 @@
         }
         
         .search-button {
-            background-color: #f44336; /* 紅色 */
+            background-color: #f44336;
         }
         
         .delete-button {
-            background-color: #dc3545; /* 警告紅色 */
+            background-color: #dc3545;
             width: auto;
             display: inline-block;
             padding: 0.5rem 1rem;
@@ -337,7 +344,7 @@
 
     <main class="container">
         <section class="coach-info">
-            <img src="image.png" alt="蝦仁教練" class="coach-photo">
+            <img src="https://placehold.co/150x150/007bff/ffffff?text=Coach" alt="蝦仁教練" class="coach-photo">
             <h2>蝦仁教練</h2>
             <p>你好！我是蝦仁教練，擁有十年游泳教學經驗，擅長兒童、成人游泳基礎教學及各項泳姿調整。期待在泳池與你相見！</p>
         </section>
@@ -372,7 +379,7 @@
             </div>
         </section>
         
-        <!-- 新增的管理員功能區塊 -->
+        <!-- 管理員功能區塊 -->
         <section id="admin-section" class="admin-section">
             <h2>管理員功能：查詢及刪除預約</h2>
             <p>輸入已預約的姓名和電話以查詢預約資料。</p>
@@ -468,7 +475,7 @@
             
             const firebaseErrorDiv = document.getElementById('firebase-error-message');
             
-            // 新增的管理員功能相關元素
+            // 管理員功能相關元素
             const adminNameInput = document.getElementById('admin-name');
             const adminPhoneInput = document.getElementById('admin-phone');
             const searchBookingBtn = document.getElementById('search-booking-btn');
@@ -479,6 +486,8 @@
             let currentYear = new Date().getFullYear();
             let selectedDate = null;
             
+            // 新增：每個時段的預約人數上限
+            const MAX_CAPACITY = 4;
             // 所有可用的預約時段
             const ALL_TIME_SLOTS = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
 
@@ -540,7 +549,6 @@
                 
                 try {
                     const schedulesCollection = collection(db, 'schedules');
-                    // 修正問題：避免使用複合查詢以防需要建立索引
                     const q = query(
                         schedulesCollection,
                         where('date', '>=', `${currentYear}-${formattedMonth}-01`),
@@ -548,16 +556,12 @@
                     );
                     const querySnapshot = await getDocs(q);
                     
-                    const bookedSlotsByDate = {};
+                    // 這裡改變了：用來儲存每個時段的預約人數
+                    const bookedSlotCounts = {};
                     querySnapshot.forEach(doc => {
                         const slot = doc.data();
-                        if (slot.isBooked) {
-                            const slotDate = slot.date;
-                            if (!bookedSlotsByDate[slotDate]) {
-                                bookedSlotsByDate[slotDate] = new Set();
-                            }
-                            bookedSlotsByDate[slotDate].add(slot.time);
-                        }
+                        const slotKey = `${slot.date}-${slot.time}`; // 使用日期和時間作為唯一鍵
+                        bookedSlotCounts[slotKey] = (bookedSlotCounts[slotKey] || 0) + 1;
                     });
                     
                     for (let i = 0; i < firstDayOfMonth; i++) {
@@ -578,19 +582,22 @@
                         if (i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
                             day.classList.add('today');
                         }
-
-                        const bookedTimesForDay = bookedSlotsByDate[formattedDate] || new Set();
-                        const unbookedSlots = ALL_TIME_SLOTS.filter(time => !bookedTimesForDay.has(time));
+                        
+                        // 檢查這一天是否有任何未額滿的時段
+                        const hasAvailableSlot = ALL_TIME_SLOTS.some(time => {
+                            const slotKey = `${formattedDate}-${time}`;
+                            return (bookedSlotCounts[slotKey] || 0) < MAX_CAPACITY;
+                        });
 
                         if (currentDayDate < today.setHours(0,0,0,0)) {
                             day.classList.add('unavailable');
-                        } else if (unbookedSlots.length > 0) {
+                        } else if (hasAvailableSlot) {
                             day.classList.add('has-slots');
                             day.addEventListener('click', () => {
                                 if (!userName || !userPhone) {
                                     userInfoModal.style.display = 'flex';
                                 } else {
-                                    showBookingModal(formattedDate, unbookedSlots);
+                                    showBookingModal(formattedDate, bookedSlotCounts);
                                 }
                             });
                         } else {
@@ -606,23 +613,31 @@
             }
 
             // 顯示預約時段彈窗的函數
-            function showBookingModal(date, slots) {
+            function showBookingModal(date, bookedSlotCounts) {
                 bookingModal.style.display = 'block';
                 modalDate.textContent = date;
                 timeSlotsContainer.innerHTML = '';
                 confirmBookingBtn.disabled = true;
                 selectedDate = date;
 
-                slots.forEach(slotTime => {
+                ALL_TIME_SLOTS.forEach(slotTime => {
+                    const slotKey = `${date}-${slotTime}`;
+                    const currentBookings = bookedSlotCounts[slotKey] || 0;
+                    const isFull = currentBookings >= MAX_CAPACITY;
+                    
                     const timeSlot = document.createElement('div');
                     timeSlot.classList.add('time-slot');
-                    timeSlot.textContent = slotTime;
+                    timeSlot.textContent = `${slotTime} (${currentBookings}/${MAX_CAPACITY})`;
                     
-                    timeSlot.addEventListener('click', () => {
-                        document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
-                        timeSlot.classList.add('selected');
-                        confirmBookingBtn.disabled = false;
-                    });
+                    if (isFull) {
+                        timeSlot.classList.add('full');
+                    } else {
+                        timeSlot.addEventListener('click', () => {
+                            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                            timeSlot.classList.add('selected');
+                            confirmBookingBtn.disabled = false;
+                        });
+                    }
                     timeSlotsContainer.appendChild(timeSlot);
                 });
             }
@@ -631,14 +646,27 @@
             confirmBookingBtn.addEventListener('click', async () => {
                 const selectedSlotElement = document.querySelector('.time-slot.selected');
                 if (selectedSlotElement && userName && userPhone) {
-                    const slotTime = selectedSlotElement.textContent;
+                    const slotTime = selectedSlotElement.textContent.split(' ')[0]; // 提取時段，例如 '09:00'
+
+                    // 新增：再次檢查是否額滿，防止多個使用者同時預約
+                    const schedulesCollection = collection(db, 'schedules');
+                    const q = query(
+                        schedulesCollection,
+                        where('date', '==', selectedDate),
+                        where('time', '==', slotTime)
+                    );
+                    const querySnapshot = await getDocs(q);
+                    if (querySnapshot.size >= MAX_CAPACITY) {
+                        alert('抱歉，此時段已被預約額滿，請選擇其他時段。');
+                        bookingModal.style.display = 'none';
+                        renderCalendar();
+                        return;
+                    }
 
                     try {
-                        const schedulesCollection = collection(db, 'schedules');
                         await addDoc(schedulesCollection, {
                             date: selectedDate,
                             time: slotTime,
-                            isBooked: true,
                             userName: userName,
                             userPhone: userPhone
                         });
@@ -651,7 +679,7 @@
                         alert("預約失敗，請稍後再試。");
                     }
                 } else {
-                    alert('請先填寫您的姓名和電話。');
+                    alert('請先填寫您的姓名和電話，或選擇一個時段。');
                     bookingModal.style.display = 'none';
                     userInfoModal.style.display = 'flex';
                 }
@@ -696,7 +724,7 @@
             };
             
             // ----------------------------------------------------------------
-            // 新增的管理員功能邏輯
+            // 管理員功能邏輯
             // ----------------------------------------------------------------
             searchBookingBtn.addEventListener('click', searchBookings);
 
@@ -713,14 +741,12 @@
                 
                 try {
                     const schedulesCollection = collection(db, 'schedules');
-                    // 為了避免複合索引錯誤，我們只用電話號碼進行查詢
                     const q = query(schedulesCollection, where('userPhone', '==', phone));
                     const querySnapshot = await getDocs(q);
                     
                     const results = [];
                     querySnapshot.forEach(doc => {
                         const booking = doc.data();
-                        // 在客戶端驗證姓名是否相符
                         if (booking.userName === name) {
                             results.push({ id: doc.id, ...booking });
                         }
@@ -749,7 +775,6 @@
                     searchResultsDiv.appendChild(resultDiv);
                 });
                 
-                // 為每個刪除按鈕添加事件監聽器
                 document.querySelectorAll('.delete-button').forEach(button => {
                     button.addEventListener('click', (e) => {
                         const docId = e.target.getAttribute('data-id');
@@ -765,8 +790,8 @@
                     const bookingDocRef = doc(db, 'schedules', docId);
                     await deleteDoc(bookingDocRef);
                     alert('預約已成功刪除！');
-                    searchBookings(); // 刪除後重新查詢
-                    renderCalendar(); // 重新渲染日曆以更新顯示
+                    searchBookings();
+                    renderCalendar();
                 } catch (error) {
                     console.error("刪除預約失敗:", error);
                     alert('刪除預約失敗，請稍後再試。');
@@ -779,4 +804,3 @@
     </script>
 </body>
 </html>
-
