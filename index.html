@@ -39,7 +39,7 @@
                 <div class="weekday">四</div>
                 <div class="weekday">五</div>
                 <div class="weekday">六</div>
-                </div>
+            </div>
         </section>
         
         <div id="booking-modal" class="modal">
@@ -47,31 +47,18 @@
                 <span class="close-button">&times;</span>
                 <h3>預約 <span id="modal-date"></span> 的課程</h3>
                 <div id="time-slots">
-                    </div>
+                </div>
                 <button id="confirm-booking" class="confirm-button" disabled>確認預約</button>
             </div>
         </div>
     </main>
 
+    <!-- 修正後的腳本引入順序 -->
+    <!-- 請先引入 Firebase app 和 firestore 的 SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <!-- 然後再引入你自己的 script.js 檔案 -->
     <script src="script.js"></script>
 </body>
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyDrevpcWddVfJRqRcyxqMR70af_GAIXlFQ",
-    authDomain: "coach-reservation.firebaseapp.com",
-    projectId: "coach-reservation",
-    storageBucket: "coach-reservation.firebasestorage.app",
-    messagingSenderId: "580815027044",
-    appId: "1:580815027044:web:3fc66b1fd0d797d7f31871"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-</script>
 </html>
