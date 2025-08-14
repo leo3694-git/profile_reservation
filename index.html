@@ -15,6 +15,7 @@
             --text-color: #333333;
             --border-color: #e0e0e0;
             --shadow-color: rgba(0, 0, 0, 0.1);
+            --leave-color: #ffc107; /* 新增請假顏色 */
         }
 
         body {
@@ -144,6 +145,16 @@
             color: #adb5bd;
             cursor: not-allowed;
         }
+        
+        .day.coach-leave {
+            background-color: var(--leave-color);
+            color: white;
+            box-shadow: 0 2px 4px rgba(255, 193, 7, 0.4);
+        }
+        
+        .day.coach-leave:hover {
+            background-color: #e0a800;
+        }
 
         .day.has-slots {
             background-color: var(--secondary-color);
@@ -203,12 +214,21 @@
             text-decoration: none;
             cursor: pointer;
         }
+        
+        /* 修正排版：使用 CSS Grid 確保兩欄對齊 */
+        #time-slots {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
 
         .time-slot {
-            display: inline-block;
+            display: flex; /* 使用 flexbox 讓內容垂直置中 */
+            justify-content: center;
+            align-items: center;
             background-color: #f0f0f0;
-            padding: 0.75rem 1.25rem;
-            margin: 0.5rem;
+            padding: 0.75rem 0;
             border-radius: 8px;
             cursor: pointer;
             transition: background-color 0.2s, color 0.2s;
@@ -230,7 +250,7 @@
             text-decoration: line-through;
         }
 
-        .confirm-button, .search-button, .delete-button {
+        .confirm-button, .search-button, .delete-button, .toggle-leave-mode-btn {
             display: block;
             width: 100%;
             padding: 1rem;
@@ -242,6 +262,11 @@
             font-size: 1rem;
             cursor: pointer;
             transition: background-color 0.3s;
+        }
+        
+        .toggle-leave-mode-btn {
+            background-color: var(--leave-color);
+            color: #333;
         }
         
         .search-button {
@@ -259,6 +284,10 @@
         
         .search-button:hover {
             background-color: #d32f2f;
+        }
+        
+        .toggle-leave-mode-btn:hover {
+            background-color: #e0a800;
         }
 
         .confirm-button:disabled {
@@ -308,6 +337,15 @@
             border-left: 5px solid var(--primary-color);
         }
         
+        .admin-options {
+            display: none; /* 預設隱藏管理員選項 */
+            margin-top: 1rem;
+        }
+        
+        .admin-options button {
+            margin-top: 0.5rem;
+        }
+        
         @media (max-width: 600px) {
             .container {
                 margin: 1rem auto;
@@ -344,7 +382,7 @@
 
     <main class="container">
         <section class="coach-info">
-            <img src="coach.png" alt="蝦仁教練" class="coach-photo">
+            <img src="https://placehold.co/150x150/007bff/ffffff?text=Coach" alt="蝦仁教練" class="coach-photo">
             <h2>蝦仁教練</h2>
             <p>你好！我是蝦仁教練，擁有十年游泳教學經驗，擅長兒童、成人游泳基礎教學及各項泳姿調整。期待在泳池與你相見！</p>
         </section>
@@ -368,30 +406,39 @@
                 <select id="year-select"></select>
             </div>
 
-            <div class="calendar-grid">
-                <div class="weekday">日</div>
-                <div class="weekday">一</div>
-                <div class="weekday">二</div>
-                <div class="weekday">三</div>
-                <div class="weekday">四</div>
-                <div class="weekday">五</div>
-                <div class="weekday">六</div>
+            <div id="calendar-grid-container">
+                <div class="calendar-grid">
+                    <div class="weekday">日</div>
+                    <div class="weekday">一</div>
+                    <div class="weekday">二</div>
+                    <div class="weekday">三</div>
+                    <div class="weekday">四</div>
+                    <div class="weekday">五</div>
+                    <div class="weekday">六</div>
+                </div>
             </div>
         </section>
         
         <!-- 管理員功能區塊 -->
         <section id="admin-section" class="admin-section">
-            <h2>管理員功能：查詢所有預約及刪除</h2>
+            <h2>管理員功能</h2>
             <p>請輸入您的教練姓名和電話來進行管理員身分驗證。</p>
-            <div class="form-group">
-                <label for="admin-name">姓名：</label>
-                <input type="text" id="admin-name">
+            <div id="admin-login-form">
+                <div class="form-group">
+                    <label for="admin-name">姓名：</label>
+                    <input type="text" id="admin-name">
+                </div>
+                <div class="form-group">
+                    <label for="admin-phone">電話：</label>
+                    <input type="tel" id="admin-phone">
+                </div>
+                <button id="admin-login-btn" class="search-button">管理員登入</button>
             </div>
-            <div class="form-group">
-                <label for="admin-phone">電話：</label>
-                <input type="tel" id="admin-phone">
+            
+            <div id="admin-options" class="admin-options">
+                <button id="search-booking-btn" class="search-button">查詢所有預約及刪除</button>
+                <button id="toggle-leave-mode-btn" class="toggle-leave-mode-btn">切換請假模式</button>
             </div>
-            <button id="search-booking-btn" class="search-button">查詢所有預約</button>
             
             <div id="search-results">
                 <!-- 查詢結果會顯示在這裡 -->
@@ -434,7 +481,7 @@
         // 使用 Firebase v9 模組化語法，確保語法一致性
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, addDoc, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
         // 你的 Firebase 設定，請確保這是你專案的正確設定
         const firebaseConfig = {
@@ -450,7 +497,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-
+        
         // ----------------------------------------------------------------
         // 網頁邏輯
         // ----------------------------------------------------------------
@@ -476,9 +523,14 @@
             const firebaseErrorDiv = document.getElementById('firebase-error-message');
             
             // 管理員功能相關元素
+            const adminLoginBtn = document.getElementById('admin-login-btn');
             const adminNameInput = document.getElementById('admin-name');
             const adminPhoneInput = document.getElementById('admin-phone');
+            const adminLoginForm = document.getElementById('admin-login-form');
+            const adminOptionsDiv = document.getElementById('admin-options');
+            
             const searchBookingBtn = document.getElementById('search-booking-btn');
+            const toggleLeaveModeBtn = document.getElementById('toggle-leave-mode-btn');
             const searchResultsDiv = document.getElementById('search-results');
 
             // 初始化日期變數
@@ -488,16 +540,19 @@
             
             // 新增：每個時段的預約人數上限
             const MAX_CAPACITY = 4;
-            // 所有可用的預約時段
-           const ALL_TIME_SLOTS = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'];
+            // 所有可用的預約時段 (平日)
+            const ALL_TIME_SLOTS = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
             
             // 預設的管理員（教練）帳號，請在這裡修改您的教練姓名和電話
-            const COACH_NAME = '仁';
-            const COACH_PHONE = '0970610005';
-
+            const COACH_NAME = '蝦仁教練';
+            const COACH_PHONE = '0912345678';
+            
             // 儲存使用者資訊的變數
             let userName = '';
             let userPhone = '';
+            
+            let isAdmin = false; // 新增：追蹤是否為管理員
+            let isLeaveMode = false; // 新增：追蹤是否為請假模式
 
             // 確保在載入時就顯示使用者資訊表單
             userInfoModal.style.display = 'flex';
@@ -552,6 +607,7 @@
                 const formattedMonth = String(currentMonth + 1).padStart(2, '0');
                 
                 try {
+                    // 獲取所有預約時段
                     const schedulesCollection = collection(db, 'schedules');
                     const q = query(
                         schedulesCollection,
@@ -567,6 +623,14 @@
                         bookedSlotCounts[slotKey] = (bookedSlotCounts[slotKey] || 0) + 1;
                     });
                     
+                    // 獲取教練請假日期
+                    const coachLeaveCollection = collection(db, 'coachLeave');
+                    const leaveSnapshot = await getDocs(coachLeaveCollection);
+                    const leaveDates = new Set();
+                    leaveSnapshot.forEach(doc => {
+                        leaveDates.add(doc.id);
+                    });
+                    
                     for (let i = 0; i < firstDayOfMonth; i++) {
                         const emptyDay = document.createElement('div');
                         emptyDay.classList.add('day', 'empty-day');
@@ -575,35 +639,62 @@
 
                     for (let i = 1; i <= daysInMonth; i++) {
                         const day = document.createElement('div');
-                        day.classList.add('day');
                         day.textContent = i;
                         
                         const today = new Date();
                         const formattedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
                         const currentDayDate = new Date(formattedDate);
                         
+                        // 檢查是否為請假日期
+                        const isLeaveDay = leaveDates.has(formattedDate);
+                        
                         if (i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
                             day.classList.add('today');
                         }
                         
-                        const hasAvailableSlot = ALL_TIME_SLOTS.some(time => {
-                            const slotKey = `${formattedDate}-${time}`;
-                            return (bookedSlotCounts[slotKey] || 0) < MAX_CAPACITY;
-                        });
-
-                        if (currentDayDate < today.setHours(0,0,0,0)) {
+                        // 檢查日期是否為過去，或是否為教練請假日
+                        if (currentDayDate < today.setHours(0,0,0,0) || isLeaveDay) {
                             day.classList.add('unavailable');
-                        } else if (hasAvailableSlot) {
-                            day.classList.add('has-slots');
-                            day.addEventListener('click', () => {
-                                if (!userName || !userPhone) {
-                                    userInfoModal.style.display = 'flex';
-                                } else {
-                                    showBookingModal(formattedDate, bookedSlotCounts);
-                                }
-                            });
+                            if (isLeaveDay) {
+                                day.classList.add('coach-leave');
+                            }
                         } else {
-                            day.classList.add('unavailable');
+                            const hasAvailableSlot = ALL_TIME_SLOTS.some(time => {
+                                const slotKey = `${formattedDate}-${time}`;
+                                return (bookedSlotCounts[slotKey] || 0) < MAX_CAPACITY;
+                            });
+
+                            if (hasAvailableSlot) {
+                                day.classList.add('day');
+                                day.classList.add('has-slots');
+                            } else {
+                                day.classList.add('day');
+                                day.classList.add('unavailable');
+                            }
+                        }
+                        
+                        // 根據模式綁定不同的點擊事件
+                        if (isAdmin && isLeaveMode) {
+                            day.classList.remove('day'); // 移除基本樣式以防衝突
+                            day.classList.add('day'); // 重新加上樣式
+                            if (isLeaveDay) {
+                                day.classList.add('coach-leave');
+                                day.addEventListener('click', () => toggleLeave(formattedDate, false));
+                            } else {
+                                day.classList.remove('coach-leave');
+                                day.addEventListener('click', () => toggleLeave(formattedDate, true));
+                            }
+                        } else { // 一般使用者或管理員非請假模式
+                            if (!day.classList.contains('unavailable')) {
+                                day.classList.add('day');
+                                day.addEventListener('click', () => {
+                                    if (!userName || !userPhone) {
+                                        userInfoModal.style.display = 'flex';
+                                    } else {
+                                        showBookingModal(formattedDate, bookedSlotCounts);
+                                    }
+                                });
+                            }
                         }
                         
                         calendarGrid.appendChild(day);
@@ -727,24 +818,36 @@
             // ----------------------------------------------------------------
             // 管理員功能邏輯 (已修改)
             // ----------------------------------------------------------------
-            searchBookingBtn.addEventListener('click', searchBookings);
-
-            async function searchBookings() {
+            adminLoginBtn.addEventListener('click', () => {
                 const name = adminNameInput.value.trim();
                 const phone = adminPhoneInput.value.trim();
-                
-                // 檢查輸入的姓名和電話是否符合管理員帳號
-                if (name !== COACH_NAME || phone !== COACH_PHONE) {
-                    alert('您輸入的教練帳號或密碼不正確。');
-                    searchResultsDiv.innerHTML = '<p>管理員身分驗證失敗。</p>';
+
+                if (name === COACH_NAME && phone === COACH_PHONE) {
+                    alert('教練登入成功！');
+                    isAdmin = true;
+                    adminLoginForm.style.display = 'none';
+                    adminOptionsDiv.style.display = 'block';
+                    searchResultsDiv.innerHTML = '';
+                    renderCalendar();
+                } else {
+                    alert('教練姓名或電話不正確。');
+                    isAdmin = false;
+                }
+            });
+            
+            searchBookingBtn.addEventListener('click', searchBookings);
+            
+            async function searchBookings() {
+                if (!isAdmin) {
+                    alert('請先以教練身份登入。');
                     return;
                 }
                 
+                isLeaveMode = false;
                 searchResultsDiv.innerHTML = '正在查詢所有預約中...';
                 
                 try {
                     const schedulesCollection = collection(db, 'schedules');
-                    // 當身分驗證成功後，查詢所有預約
                     const querySnapshot = await getDocs(schedulesCollection);
                     
                     const results = [];
@@ -753,7 +856,6 @@
                         results.push({ id: doc.id, ...booking });
                     });
                     
-                    // 根據日期和時間排序結果，方便管理員查看
                     results.sort((a, b) => {
                         if (a.date === b.date) {
                             return a.time.localeCompare(b.time);
@@ -788,7 +890,6 @@
                 document.querySelectorAll('.delete-button').forEach(button => {
                     button.addEventListener('click', (e) => {
                         const docId = e.target.getAttribute('data-id');
-                        // 確保管理員身分再次驗證，以防誤操作
                         if (confirm('確定要刪除這筆預約嗎？此操作無法復原！')) {
                             deleteBooking(docId);
                         }
@@ -809,12 +910,50 @@
                 }
             }
             
+            // ----------------------------------------------------------------
+            // 新增功能：教練請假模式
+            // ----------------------------------------------------------------
+            toggleLeaveModeBtn.addEventListener('click', () => {
+                if (!isAdmin) {
+                    alert('請先以教練身份登入。');
+                    return;
+                }
+                isLeaveMode = !isLeaveMode;
+                toggleLeaveModeBtn.textContent = isLeaveMode ? '離開請假模式' : '切換請假模式';
+                searchResultsDiv.innerHTML = isLeaveMode ? '<p>請點擊日曆上的日期來標記或取消請假。</p>' : '';
+                renderCalendar();
+            });
+            
+            async function toggleLeave(date, isLeaving) {
+                const coachLeaveCollection = collection(db, 'coachLeave');
+                const docRef = doc(coachLeaveCollection, date);
+                
+                try {
+                    if (isLeaving) {
+                        // 檢查當天是否已有預約，若有則不允許請假
+                        const schedulesCollection = collection(db, 'schedules');
+                        const q = query(schedulesCollection, where('date', '==', date));
+                        const snapshot = await getDocs(q);
+                        if (!snapshot.empty) {
+                            alert('該日已有預約，無法請假。請先刪除所有預約後再嘗試。');
+                            return;
+                        }
+                        await setDoc(docRef, { date: date });
+                        alert(`${date} 已被標記為請假日。`);
+                    } else {
+                        await deleteDoc(docRef);
+                        alert(`${date} 的請假已取消。`);
+                    }
+                    renderCalendar();
+                } catch (error) {
+                    console.error("切換請假狀態失敗:", error);
+                    alert('操作失敗，請稍後再試。');
+                }
+            }
+            
             // 網頁載入時初始化
             initYearSelect();
         });
     </script>
 </body>
 </html>
-
-
-
