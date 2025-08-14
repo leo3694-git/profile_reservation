@@ -1,4 +1,4 @@
-// 將你的 Firebase 設定放在這裡
+// Firebase 設定
 const firebaseConfig = {
     apiKey: "AIzaSyDrevpcWddVfJRqRcyxqMR70af_GAIXlFQ",
     authDomain: "coach-reservation.firebaseapp.com",
@@ -9,9 +9,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 
-// 你的舊有程式碼...
 document.addEventListener('DOMContentLoaded', () => {
-    // 這裡不需要再初始化一次 Firebase，因為前面已經做過了
     const db = firebase.firestore();
 
     const calendarGrid = document.querySelector('.calendar-grid');
@@ -29,6 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentMonth = new Date().getMonth();
     let currentYear = new Date().getFullYear();
     let selectedDate = null;
+    
+    // 定義所有可能的預約時段
+    const ALL_TIME_SLOTS = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
 
     function initYearSelect() {
         const currentYear = new Date().getFullYear();
@@ -53,19 +54,22 @@ document.addEventListener('DOMContentLoaded', () => {
         yearSelect.value = currentYear;
 
         const formattedMonth = String(currentMonth + 1).padStart(2, '0');
+        
+        // 這次只查詢「isBooked: true」的時段
         const querySnapshot = await db.collection('schedules')
             .where('date', '>=', `${currentYear}-${formattedMonth}-01`)
             .where('date', '<=', `${currentYear}-${formattedMonth}-${daysInMonth}`)
+            .where('isBooked', '==', true)
             .get();
         
-        const availableSlotsByDate = {};
+        const bookedSlotsByDate = {};
         querySnapshot.forEach(doc => {
             const slot = doc.data();
             const slotDate = slot.date;
-            if (!availableSlotsByDate[slotDate]) {
-                availableSlotsByDate[slotDate] = [];
+            if (!bookedSlotsByDate[slotDate]) {
+                bookedSlotsByDate[slotDate] = new Set();
             }
-            availableSlotsByDate[slotDate].push({ id: doc.id, ...slot });
+            bookedSlotsByDate[slotDate].add(slot.time);
         });
         
         for (let i = 0; i < firstDayOfMonth; i++) {
@@ -80,19 +84,28 @@ document.addEventListener('DOMContentLoaded', () => {
             day.textContent = i;
             
             const today = new Date();
+            const formattedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+            const currentDayDate = new Date(formattedDate);
+            
+            // 判斷是否為今天
             if (i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
                 day.classList.add('today');
             }
-            
-            const formattedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-            
-            const slotsForDay = availableSlotsByDate[formattedDate] || [];
-            const unbookedSlots = slotsForDay.filter(slot => !slot.isBooked);
 
-            if (unbookedSlots.length > 0) {
+            // 檢查這一天是否還有未被預約的時段
+            const bookedTimesForDay = bookedSlotsByDate[formattedDate] || new Set();
+            
+            // 找出未被預約的時段
+            const unbookedSlots = ALL_TIME_SLOTS.filter(time => !bookedTimesForDay.has(time));
+
+            if (currentDayDate < today.setHours(0,0,0,0)) {
+                 day.classList.add('unavailable');
+            } else if (unbookedSlots.length > 0) {
+                // 如果還有時段，就讓它可點擊
                 day.classList.add('has-slots');
                 day.addEventListener('click', () => showBookingModal(formattedDate, unbookedSlots));
             } else {
+                // 如果所有時段都被預約了，就顯示為不可用
                 day.classList.add('unavailable');
             }
             
@@ -107,12 +120,77 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmBookingBtn.disabled = true;
         selectedDate = date;
 
-        slots.forEach(slot => {
+        slots.forEach(slotTime => {
             const timeSlot = document.createElement('div');
             timeSlot.classList.add('time-slot');
-            timeSlot.textContent = slot.time;
-            timeSlot.dataset.slotId = slot.id;
+            timeSlot.textContent = slotTime;
             
-            timeSlot.addEventListener
+            timeSlot.addEventListener('click', () => {
+                document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                timeSlot.classList.add('selected');
+                confirmBookingBtn.disabled = false;
+            });
+            timeSlotsContainer.appendChild(timeSlot);
+        });
+    }
+    
+    confirmBookingBtn.addEventListener('click', async () => {
+        const selectedSlotElement = document.querySelector('.time-slot.selected');
+        if (selectedSlotElement) {
+            const slotTime = selectedSlotElement.textContent;
 
+            try {
+                // 檢查是否已存在同日期同時間的預約，若無則新增
+                const docRef = db.collection('schedules').doc();
+                await docRef.set({
+                    date: selectedDate,
+                    time: slotTime,
+                    isBooked: true
+                });
+                
+                alert(`恭喜您，已成功預約 ${selectedDate} ${slotTime} 的課程！`);
+                modal.style.display = 'none';
+                renderCalendar();
+            } catch (error) {
+                console.error("預約失敗:", error);
+                alert("預約失敗，請稍後再試。");
+            }
+        }
+    });
+
+    prevMonthBtn.addEventListener('click', () => {
+        currentMonth--;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        renderCalendar();
+    });
+
+    nextMonthBtn.addEventListener('click', () => {
+        currentMonth++;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        renderCalendar();
+    });
+
+    yearSelect.addEventListener('change', (e) => {
+        currentYear = parseInt(e.target.value);
+        renderCalendar();
+    });
+    
+    closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+    
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    };
+
+    initYearSelect();
+    renderCalendar();
 });
