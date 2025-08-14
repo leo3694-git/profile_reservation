@@ -152,7 +152,6 @@
                 <p class="text-gray-600 text-lg">
                     你好！我是仁教練，擁有十年游泳教學經驗，擅長兒童、成人游泳基礎教學及各項泳姿調整。期待在泳池與你相見！
                 </p>
-                <!-- 根據你的要求移除電話號碼 -->
             </div>
         </section>
 
@@ -238,13 +237,29 @@
             </div>
         </div>
 
-        <!-- 新增：教練預約排程彈窗 -->
+        <!-- 教練預約排程彈窗 -->
         <div id="admin-schedule-modal" class="modal fixed inset-0 flex items-center justify-center p-4 modal-background z-50 hidden">
             <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-lg relative modal-content">
                 <span id="close-admin-schedule-modal" class="close-button absolute top-4 right-6 text-gray-400 hover:text-gray-800 text-3xl font-bold transition-colors cursor-pointer">&times;</span>
                 <h3 class="text-2xl font-bold text-gray-800 mb-4">教練排程：<span id="admin-modal-date" class="text-blue-500"></span></h3>
                 <div id="admin-schedule-list" class="mt-6 space-y-4 max-h-96 overflow-y-auto">
                     <!-- 排程內容會動態生成在這裡 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 自訂訊息彈窗 (新增) -->
+        <div id="message-modal" class="modal fixed inset-0 flex items-center justify-center p-4 modal-background z-50 hidden">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm relative modal-content">
+                <div id="message-modal-header" class="px-6 py-4 rounded-t-2xl text-white flex justify-between items-center">
+                    <h3 id="message-modal-title" class="text-xl font-bold"></h3>
+                    <span id="close-message-modal" class="text-3xl font-bold transition-colors cursor-pointer">&times;</span>
+                </div>
+                <div class="p-6">
+                    <p id="message-modal-body" class="text-gray-700 text-center text-lg mb-6"></p>
+                    <div id="message-modal-buttons" class="flex justify-center gap-4">
+                        <button id="message-modal-close-btn" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors">關閉</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -260,7 +275,6 @@
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
         import { getFirestore, collection, query, where, getDocs, addDoc, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-        // 你的 Firebase 設定，請確保這是你專案的正確設定
         const firebaseConfig = {
             apiKey: "AIzaSyDrevpcWddVfJRqRcyxqMR70af_GAIXlFQ",
             authDomain: "coach-reservation.firebaseapp.com",
@@ -270,7 +284,6 @@
             appId: "1:580815027044:web:3fc66b1fd0d797d7f31871"
         };
         
-        // 初始化 Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -279,7 +292,6 @@
         // 網頁邏輯
         // ----------------------------------------------------------------
         document.addEventListener('DOMContentLoaded', () => {
-            // 取得所有需要的DOM元素
             const calendarGrid = document.querySelector('.calendar-grid');
             const currentMonthYear = document.getElementById('current-month-year');
             const prevMonthBtn = document.getElementById('prev-month');
@@ -299,7 +311,6 @@
             
             const firebaseErrorDiv = document.getElementById('firebase-error-message');
             
-            // 管理員功能相關元素
             const adminLoginBtn = document.getElementById('admin-login-btn');
             const adminNameInput = document.getElementById('admin-name');
             const adminPhoneInput = document.getElementById('admin-phone');
@@ -310,38 +321,113 @@
             const toggleLeaveModeBtn = document.getElementById('toggle-leave-mode-btn');
             const searchResultsDiv = document.getElementById('search-results');
 
-            // 新增：教練預約排程彈窗相關元素
             const adminScheduleModal = document.getElementById('admin-schedule-modal');
             const closeAdminScheduleModalBtn = document.getElementById('close-admin-schedule-modal');
             const adminModalDate = document.getElementById('admin-modal-date');
             const adminScheduleList = document.getElementById('admin-schedule-list');
 
-            // 初始化日期變數
+            // 新增：自訂訊息彈窗相關元素
+            const messageModal = document.getElementById('message-modal');
+            const messageModalHeader = document.getElementById('message-modal-header');
+            const messageModalTitle = document.getElementById('message-modal-title');
+            const messageModalBody = document.getElementById('message-modal-body');
+            const messageModalButtons = document.getElementById('message-modal-buttons');
+            const closeMessageModalBtn = document.getElementById('close-message-modal');
+
             let currentMonth = new Date().getMonth();
             let currentYear = new Date().getFullYear();
             let selectedDate = null;
-            let selectedTime = null; // 新增：追蹤選取的時段
+            let selectedTime = null;
             
-            // 新增：每個時段的預約人數上限
             const MAX_CAPACITY = 4;
-            // 所有可用的預約時段 (平日)
             const ALL_TIME_SLOTS = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'];
             
-            // 預設的管理員（教練）帳號
             const COACH_NAME = '仁';
             const COACH_PHONE = '0970610005';
             
-            // 儲存使用者資訊的變數
             let userName = '';
             let userPhone = '';
             
-            let isAdmin = false; // 新增：追蹤是否為管理員
-            let isLeaveMode = false; // 新增：追蹤是否為請假模式
+            let isAdmin = false;
+            let isLeaveMode = false;
 
-            // 匿名登入並處理成功或失敗
+            // 新增：顯示自訂訊息彈窗的函數
+            function showMessageModal(title, message, isSuccess = true, onConfirm = null) {
+                // 重設樣式和內容
+                messageModalHeader.className = '';
+                messageModalHeader.classList.add('px-6', 'py-4', 'rounded-t-2xl', 'text-white', 'flex', 'justify-between', 'items-center');
+                messageModalTitle.textContent = title;
+                messageModalBody.textContent = message;
+                messageModalButtons.innerHTML = ''; // 清空按鈕
+
+                if (isSuccess) {
+                    messageModalHeader.classList.add('bg-green-500');
+                    closeMessageModalBtn.classList.add('hover:text-green-200');
+                } else {
+                    messageModalHeader.classList.add('bg-red-500');
+                    closeMessageModalBtn.classList.add('hover:text-red-200');
+                }
+
+                if (onConfirm) {
+                    // 帶有確認功能的彈窗
+                    const confirmBtn = document.createElement('button');
+                    confirmBtn.classList.add('flex-1', 'bg-red-500', 'hover:bg-red-600', 'text-white', 'font-bold', 'py-3', 'px-6', 'rounded-lg', 'transition-colors');
+                    confirmBtn.textContent = '確定';
+                    confirmBtn.addEventListener('click', () => {
+                        onConfirm();
+                        hideMessageModal();
+                    });
+
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.classList.add('flex-1', 'bg-gray-500', 'hover:bg-gray-600', 'text-white', 'font-bold', 'py-3', 'px-6', 'rounded-lg', 'transition-colors');
+                    cancelBtn.textContent = '取消';
+                    cancelBtn.addEventListener('click', () => hideMessageModal());
+                    
+                    messageModalButtons.appendChild(cancelBtn);
+                    messageModalButtons.appendChild(confirmBtn);
+
+                } else {
+                    // 一般訊息彈窗
+                    const closeBtn = document.createElement('button');
+                    closeBtn.classList.add('flex-1', 'bg-gray-500', 'hover:bg-gray-600', 'text-white', 'font-bold', 'py-3', 'px-6', 'rounded-lg', 'transition-colors');
+                    closeBtn.textContent = '關閉';
+                    closeBtn.addEventListener('click', () => hideMessageModal());
+                    messageModalButtons.appendChild(closeBtn);
+                }
+
+                messageModal.classList.remove('hidden');
+                messageModal.classList.add('flex');
+            }
+
+            // 新增：隱藏自訂訊息彈窗的函數
+            function hideMessageModal() {
+                messageModal.classList.remove('flex');
+                messageModal.classList.add('hidden');
+            }
+
+            // 關閉自訂訊息彈窗按鈕
+            closeMessageModalBtn.addEventListener('click', () => hideMessageModal());
+            
+            // 點擊背景關閉彈窗
+            window.onclick = (event) => {
+                if (event.target === bookingModal) {
+                    bookingModal.classList.remove('flex');
+                    bookingModal.classList.add('hidden');
+                }
+                if (event.target === adminScheduleModal) {
+                    adminScheduleModal.classList.remove('flex');
+                    adminScheduleModal.classList.add('hidden');
+                }
+                if (event.target === userInfoModal) {
+                    // 點擊背景不關閉使用者資訊彈窗
+                }
+                if (event.target === messageModal) {
+                    hideMessageModal();
+                }
+            };
+
             signInAnonymously(auth).then(() => {
                 console.log("匿名登入成功！");
-                // 在匿名登入成功後，檢查是否有儲存的使用者資訊，若沒有則顯示表單
                 if (!userName || !userPhone) {
                     userInfoModal.classList.remove('hidden');
                     userInfoModal.classList.add('flex');
@@ -352,7 +438,6 @@
                 firebaseErrorDiv.style.display = 'block';
             });
 
-            // 處理「使用者資訊」彈窗的「確認」按鈕點擊事件
             submitUserInfoBtn.addEventListener('click', () => {
                 const name = userNameInput.value.trim();
                 const phone = userPhoneInput.value.trim();
@@ -363,15 +448,13 @@
                     userInfoModal.classList.remove('flex');
                     userInfoModal.classList.add('hidden');
                 } else {
-                    // 使用 console.error 或自定義 modal 替換 alert()
-                    console.error('請完整填寫姓名和電話。');
+                    showMessageModal('錯誤', '請完整填寫姓名和電話。', false);
                 }
             });
 
-            // 初始化年份下拉選單
             function initYearSelect() {
                 const currentYear = new Date().getFullYear();
-                yearSelect.innerHTML = ''; // 清空舊的選項
+                yearSelect.innerHTML = '';
                 for (let i = currentYear; i <= 2050; i++) {
                     const option = document.createElement('option');
                     option.value = i;
@@ -383,9 +466,7 @@
                 }
             }
 
-            // 渲染日曆的主要函數
             async function renderCalendar() {
-                // 修復：先清空整個日曆容器，然後再重新生成星期幾的標頭，確保排版正確
                 calendarGrid.innerHTML = '';
                 const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
                 weekdays.forEach(dayText => {
@@ -405,7 +486,6 @@
                 const formattedMonth = String(currentMonth + 1).padStart(2, '0');
                 
                 try {
-                    // 獲取所有預約時段
                     const schedulesCollection = collection(db, 'schedules');
                     const q = query(
                         schedulesCollection,
@@ -421,7 +501,6 @@
                         bookedSlotCounts[slotKey] = (bookedSlotCounts[slotKey] || 0) + 1;
                     });
                     
-                    // 獲取教練請假日期
                     const coachLeaveCollection = collection(db, 'coachLeave');
                     const leaveSnapshot = await getDocs(coachLeaveCollection);
                     const leaveDates = new Set();
@@ -438,7 +517,7 @@
                     for (let i = 1; i <= daysInMonth; i++) {
                         const day = document.createElement('div');
                         day.textContent = i;
-                        day.classList.add('day'); // 確保每個日期都有基礎的 'day' 樣式
+                        day.classList.add('day');
                         
                         const today = new Date();
                         const formattedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
@@ -448,13 +527,11 @@
                         const isPastDay = currentDayDate < today.setHours(0,0,0,0);
                         const isToday = i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear();
                         
-                        // 檢查日期是否有預約時段
                         const hasAvailableSlot = ALL_TIME_SLOTS.some(time => {
                             const slotKey = `${formattedDate}-${time}`;
                             return (bookedSlotCounts[slotKey] || 0) < MAX_CAPACITY;
                         });
 
-                        // 根據模式綁定不同的點擊事件
                         if (isAdmin && isLeaveMode) {
                             if (isLeaveDay) {
                                 day.classList.add('coach-leave');
@@ -462,14 +539,14 @@
                             } else {
                                 day.addEventListener('click', () => toggleLeave(formattedDate, true));
                             }
-                        } else if (isAdmin) { // 新增：教練模式下，點擊日期可以查看排程
+                        } else if (isAdmin) {
                             if (isPastDay) {
                                 day.classList.add('unavailable');
                             } else {
-                                day.classList.add('has-slots'); // 即使沒有預約也讓它可點擊
+                                day.classList.add('has-slots');
                                 day.addEventListener('click', () => showAdminScheduleModal(formattedDate));
                             }
-                        } else { // 一般使用者
+                        } else {
                             if (isPastDay || isLeaveDay) {
                                 day.classList.add('unavailable');
                                 if (isLeaveDay) {
@@ -498,27 +575,20 @@
                     }
                 } catch (error) {
                     console.error("渲染日曆失敗:", error);
-                    // 使用 console.error 或自定義 modal 替換 alert()
-                    console.error("載入預約資訊失敗，請檢查網路連線或稍後再試。");
+                    showMessageModal('錯誤', '載入預約資訊失敗，請檢查網路連線或稍後再試。', false);
                 }
             }
             
-            // 處理「預約時段」彈窗的事件委派
             timeSlotsContainer.addEventListener('click', (event) => {
                 const clickedSlot = event.target.closest('.time-slot');
                 if (clickedSlot && !clickedSlot.classList.contains('full')) {
-                    // 移除所有時段的選取狀態
                     document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
-                    // 為被點擊的時段新增選取狀態
                     clickedSlot.classList.add('selected');
-                    // 更新選取時段的變數
                     selectedTime = clickedSlot.getAttribute('data-time');
-                    // 啟用確認按鈕
                     confirmBookingBtn.disabled = false;
                 }
             });
 
-            // 顯示預約時段彈窗的函數
             function showBookingModal(date, bookedSlotCounts) {
                 bookingModal.classList.remove('hidden');
                 bookingModal.classList.add('flex');
@@ -526,7 +596,7 @@
                 timeSlotsContainer.innerHTML = '';
                 confirmBookingBtn.disabled = true;
                 selectedDate = date;
-                selectedTime = null; // 重置選取時段
+                selectedTime = null;
 
                 ALL_TIME_SLOTS.forEach(slotTime => {
                     const slotKey = `${date}-${slotTime}`;
@@ -535,7 +605,7 @@
                     
                     const timeSlot = document.createElement('div');
                     timeSlot.classList.add('time-slot');
-                    timeSlot.setAttribute('data-time', slotTime); // 新增 data-time 屬性
+                    timeSlot.setAttribute('data-time', slotTime);
                     timeSlot.textContent = `${slotTime} (${currentBookings}/${MAX_CAPACITY})`;
                     
                     if (isFull) {
@@ -545,7 +615,6 @@
                 });
             }
             
-            // 處理「預約時段」彈窗的「確認預約」按鈕點擊事件
             confirmBookingBtn.addEventListener('click', async () => {
                 if (selectedTime && userName && userPhone) {
                     const schedulesCollection = collection(db, 'schedules');
@@ -556,8 +625,7 @@
                     );
                     const querySnapshot = await getDocs(q);
                     if (querySnapshot.size >= MAX_CAPACITY) {
-                        // 使用 console.error 或自定義 modal 替換 alert()
-                        console.error('抱歉，此時段已被預約額滿，請選擇其他時段。');
+                        showMessageModal('錯誤', '抱歉，此時段已被預約額滿，請選擇其他時段。', false);
                         bookingModal.classList.remove('flex');
                         bookingModal.classList.add('hidden');
                         renderCalendar();
@@ -572,19 +640,16 @@
                             userPhone: userPhone
                         });
                         
-                        // 使用 console.log 或自定義 modal 替換 alert()
-                        console.log(`恭喜您，${userName}！已成功預約 ${selectedDate} ${selectedTime} 的課程。`);
+                        showMessageModal('預約成功', `恭喜您，${userName}！已成功預約 ${selectedDate} ${selectedTime} 的課程。`, true);
                         bookingModal.classList.remove('flex');
                         bookingModal.classList.add('hidden');
-                        renderCalendar(); // 預約成功後重新渲染日曆
+                        renderCalendar();
                     } catch (error) {
                         console.error("預約失敗:", error);
-                        // 使用 console.error 或自定義 modal 替換 alert()
-                        console.error("預約失敗，請稍後再試。");
+                        showMessageModal('錯誤', '預約失敗，請稍後再試。', false);
                     }
                 } else {
-                    // 使用 console.error 或自定義 modal 替換 alert()
-                    console.error('請先填寫您的姓名和電話，或選擇一個時段。');
+                    showMessageModal('錯誤', '請先填寫您的姓名和電話，或選擇一個時段。', false);
                     bookingModal.classList.remove('flex');
                     bookingModal.classList.add('hidden');
                     userInfoModal.classList.remove('hidden');
@@ -592,7 +657,6 @@
                 }
             });
 
-            // 上一個月按鈕
             prevMonthBtn.addEventListener('click', () => {
                 currentMonth--;
                 if (currentMonth < 0) {
@@ -602,7 +666,6 @@
                 renderCalendar();
             });
 
-            // 下一個月按鈕
             nextMonthBtn.addEventListener('click', () => {
                 currentMonth++;
                 if (currentMonth > 11) {
@@ -612,38 +675,20 @@
                 renderCalendar();
             });
 
-            // 年份下拉選單變更
             yearSelect.addEventListener('change', (e) => {
                 currentYear = parseInt(e.target.value);
                 renderCalendar();
             });
             
-            // 預約彈窗的關閉按鈕
             closeBookingModalBtn.addEventListener('click', () => {
                 bookingModal.classList.remove('flex');
                 bookingModal.classList.add('hidden');
             });
 
-            // 新增：教練排程彈窗的關閉按鈕
             closeAdminScheduleModalBtn.addEventListener('click', () => {
                 adminScheduleModal.classList.remove('flex');
                 adminScheduleModal.classList.add('hidden');
             });
-            
-            // 點擊彈窗以外的地方關閉彈窗
-            window.onclick = (event) => {
-                if (event.target === bookingModal) {
-                    bookingModal.classList.remove('flex');
-                    bookingModal.classList.add('hidden');
-                }
-                if (event.target === adminScheduleModal) {
-                    adminScheduleModal.classList.remove('flex');
-                    adminScheduleModal.classList.add('hidden');
-                }
-                if (event.target === userInfoModal) {
-                    // 使用者資訊彈窗點擊背景不關閉，需要手動填寫
-                }
-            };
             
             // ----------------------------------------------------------------
             // 管理員功能邏輯 (已修改)
@@ -653,16 +698,14 @@
                 const phone = adminPhoneInput.value.trim();
 
                 if (name === COACH_NAME && phone === COACH_PHONE) {
-                    // 使用 console.log 或自定義 modal 替換 alert()
-                    console.log('教練登入成功！');
+                    showMessageModal('登入成功', '教練登入成功！', true);
                     isAdmin = true;
                     adminLoginForm.classList.add('hidden');
                     adminOptionsDiv.classList.remove('hidden');
                     searchResultsDiv.innerHTML = '';
                     renderCalendar();
                 } else {
-                    // 使用 console.error 或自定義 modal 替換 alert()
-                    console.error('教練姓名或電話不正確。');
+                    showMessageModal('登入失敗', '教練姓名或電話不正確。', false);
                     isAdmin = false;
                 }
             });
@@ -671,8 +714,7 @@
             
             async function searchBookings() {
                 if (!isAdmin) {
-                    // 使用 console.error 或自定義 modal 替換 alert()
-                    console.error('請先以教練身份登入。');
+                    showMessageModal('權限不足', '請先以教練身份登入。', false);
                     return;
                 }
                 
@@ -727,10 +769,12 @@
                 document.querySelectorAll('.delete-button').forEach(button => {
                     button.addEventListener('click', (e) => {
                         const docId = e.target.getAttribute('data-id');
-                        // 使用自定義的 modal 替換 alert()
-                        // if (confirm('確定要刪除這筆預約嗎？此操作無法復原！')) {
-                        //     deleteBooking(docId);
-                        // }
+                        showMessageModal(
+                            '確認刪除', 
+                            '確定要刪除這筆預約嗎？此操作無法復原！', 
+                            false, 
+                            () => deleteBooking(docId)
+                        );
                     });
                 });
             }
@@ -739,14 +783,12 @@
                 try {
                     const bookingDocRef = doc(db, 'schedules', docId);
                     await deleteDoc(bookingDocRef);
-                    // 使用 console.log 或自定義 modal 替換 alert()
-                    console.log('預約已成功刪除！');
+                    showMessageModal('刪除成功', '預約已成功刪除！', true);
                     searchBookings();
                     renderCalendar();
                 } catch (error) {
                     console.error("刪除預約失敗:", error);
-                    // 使用 console.error 或自定義 modal 替換 alert()
-                    console.error('刪除預約失敗，請稍後再試。');
+                    showMessageModal('刪除失敗', '刪除預約失敗，請稍後再試。', false);
                 }
             }
             
@@ -755,8 +797,7 @@
             // ----------------------------------------------------------------
             toggleLeaveModeBtn.addEventListener('click', () => {
                 if (!isAdmin) {
-                    // 使用 console.error 或自定義 modal 替換 alert()
-                    console.error('請先以教練身份登入。');
+                    showMessageModal('權限不足', '請先以教練身份登入。', false);
                     return;
                 }
                 isLeaveMode = !isLeaveMode;
@@ -771,28 +812,23 @@
                 
                 try {
                     if (isLeaving) {
-                        // 檢查當天是否已有預約，若有則不允許請假
                         const schedulesCollection = collection(db, 'schedules');
                         const q = query(schedulesCollection, where('date', '==', date));
                         const snapshot = await getDocs(q);
                         if (!snapshot.empty) {
-                            // 使用 console.error 或自定義 modal 替換 alert()
-                            console.error('該日已有預約，無法請假。請先刪除所有預約後再嘗試。');
+                            showMessageModal('錯誤', '該日已有預約，無法請假。請先刪除所有預約後再嘗試。', false);
                             return;
                         }
                         await setDoc(docRef, { date: date });
-                        // 使用 console.log 或自定義 modal 替換 alert()
-                        console.log(`${date} 已被標記為請假日。`);
+                        showMessageModal('請假成功', `${date} 已被標記為請假日。`, true);
                     } else {
                         await deleteDoc(docRef);
-                        // 使用 console.log 或自定義 modal 替換 alert()
-                        console.log(`${date} 的請假已取消。`);
+                        showMessageModal('請假取消', `${date} 的請假已取消。`, true);
                     }
                     renderCalendar();
                 } catch (error) {
                     console.error("切換請假狀態失敗:", error);
-                    // 使用 console.error 或自定義 modal 替換 alert()
-                    console.error('操作失敗，請稍後再試。');
+                    showMessageModal('錯誤', '操作失敗，請稍後再試。', false);
                 }
             }
 
@@ -821,7 +857,6 @@
                         bookings.push({ id: doc.id, ...doc.data() });
                     });
 
-                    // 按時間排序
                     bookings.sort((a, b) => a.time.localeCompare(b.time));
 
                     bookings.forEach(booking => {
@@ -838,9 +873,14 @@
                     });
 
                     document.querySelectorAll('.delete-booking-btn').forEach(button => {
-                        button.addEventListener('click', async (e) => {
+                        button.addEventListener('click', (e) => {
                             const docId = e.target.getAttribute('data-id');
-                            await deleteBookingFromAdminView(docId, date);
+                            showMessageModal(
+                                '確認刪除', 
+                                '確定要刪除這筆預約嗎？此操作無法復原！', 
+                                false, 
+                                () => deleteBookingFromAdminView(docId, date)
+                            );
                         });
                     });
 
@@ -854,21 +894,17 @@
                 try {
                     const bookingDocRef = doc(db, 'schedules', docId);
                     await deleteDoc(bookingDocRef);
-                    console.log('預約已成功刪除！');
-                    // 重新載入當天的排程
+                    showMessageModal('刪除成功', '預約已成功刪除！', true);
                     showAdminScheduleModal(date);
-                    // 同時更新主日曆畫面
                     renderCalendar();
                 } catch (error) {
                     console.error("刪除預約失敗:", error);
-                    console.error('刪除預約失敗，請稍後再試。');
+                    showMessageModal('刪除失敗', '刪除預約失敗，請稍後再試。', false);
                 }
             }
             
-            // 網頁載入時初始化
             initYearSelect();
         });
     </script>
 </body>
 </html>
-
