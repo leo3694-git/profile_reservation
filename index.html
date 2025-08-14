@@ -42,6 +42,21 @@
             </div>
         </section>
         
+        <div id="user-info-modal" class="modal active">
+            <div class="modal-content">
+                <h3>請輸入您的聯絡資訊</h3>
+                <div class="form-group">
+                    <label for="user-name">姓名：</label>
+                    <input type="text" id="user-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="user-phone">電話：</label>
+                    <input type="tel" id="user-phone" required>
+                </div>
+                <button id="submit-user-info" class="confirm-button">確認</button>
+            </div>
+        </div>
+
         <div id="booking-modal" class="modal">
             <div class="modal-content">
                 <span class="close-button">&times;</span>
@@ -53,12 +68,6 @@
         </div>
     </main>
 
-    <!-- 修正後的腳本引入順序 -->
-    <!-- 請先引入 Firebase app 和 firestore 的 SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    
-    <!-- 然後再引入你自己的 script.js 檔案 -->
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
