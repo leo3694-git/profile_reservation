@@ -9,9 +9,6 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 
-// ----------------------------------------------------------------
-// 新增的程式碼: 引入 Firebase 認證服務並處理匿名登入
-// ----------------------------------------------------------------
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 const auth = getAuth();
 
@@ -20,10 +17,8 @@ signInAnonymously(auth).then(() => {
 }).catch((error) => {
     console.error("匿名登入失敗:", error);
 });
-// ----------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 現在可以在 DOMContentLoaded 之後取得 Firestore 服務
     const db = firebase.firestore();
 
     const calendarGrid = document.querySelector('.calendar-grid');
@@ -32,7 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextMonthBtn = document.getElementById('next-month');
     const yearSelect = document.getElementById('year-select');
     
-    const modal = document.getElementById('booking-modal');
+    // 新增: 使用者資訊彈窗相關元素
+    const userInfoModal = document.getElementById('user-info-modal');
+    const userNameInput = document.getElementById('user-name');
+    const userPhoneInput = document.getElementById('user-phone');
+    const submitUserInfoBtn = document.getElementById('submit-user-info');
+    
+    const bookingModal = document.getElementById('booking-modal');
     const closeBtn = document.querySelector('.close-button');
     const modalDate = document.getElementById('modal-date');
     const timeSlotsContainer = document.getElementById('time-slots');
@@ -43,6 +44,26 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedDate = null;
     
     const ALL_TIME_SLOTS = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
+
+    // 新增: 用於儲存使用者資訊
+    let userName = '';
+    let userPhone = '';
+
+    // 處理使用者資訊表單
+    submitUserInfoBtn.addEventListener('click', () => {
+        const name = userNameInput.value.trim();
+        const phone = userPhoneInput.value.trim();
+        
+        if (name && phone) {
+            userName = name;
+            userPhone = phone;
+            userInfoModal.style.display = 'none';
+        } else {
+            alert('請完整填寫姓名和電話。');
+        }
+    });
+
+    // 其他函式保持不變...
 
     function initYearSelect() {
         const currentYear = new Date().getFullYear();
@@ -111,7 +132,14 @@ document.addEventListener('DOMContentLoaded', () => {
                      day.classList.add('unavailable');
                 } else if (unbookedSlots.length > 0) {
                     day.classList.add('has-slots');
-                    day.addEventListener('click', () => showBookingModal(formattedDate, unbookedSlots));
+                    day.addEventListener('click', () => {
+                        // 點擊時，如果使用者資訊還沒填寫，就先顯示表單
+                        if (!userName || !userPhone) {
+                            userInfoModal.style.display = 'flex';
+                        } else {
+                            showBookingModal(formattedDate, unbookedSlots);
+                        }
+                    });
                 } else {
                     day.classList.add('unavailable');
                 }
@@ -120,12 +148,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error("渲染日曆失敗:", error);
-            // 這裡可以選擇性地在頁面上顯示錯誤訊息
         }
     }
 
     function showBookingModal(date, slots) {
-        modal.style.display = 'block';
+        bookingModal.style.display = 'block';
         modalDate.textContent = date;
         timeSlotsContainer.innerHTML = '';
         confirmBookingBtn.disabled = true;
@@ -147,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     confirmBookingBtn.addEventListener('click', async () => {
         const selectedSlotElement = document.querySelector('.time-slot.selected');
-        if (selectedSlotElement) {
+        if (selectedSlotElement && userName && userPhone) {
             const slotTime = selectedSlotElement.textContent;
 
             try {
@@ -155,17 +182,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 await docRef.set({
                     date: selectedDate,
                     time: slotTime,
-                    isBooked: true
+                    isBooked: true,
+                    // 新增: 將使用者資訊儲存到 Firestore
+                    userName: userName,
+                    userPhone: userPhone
                 });
                 
-                alert(`恭喜您，已成功預約 ${selectedDate} ${slotTime} 的課程！`);
-                modal.style.display = 'none';
+                alert(`恭喜您，${userName}！已成功預約 ${selectedDate} ${slotTime} 的課程。`);
+                bookingModal.style.display = 'none';
                 renderCalendar();
             } catch (error) {
-                // 這裡會顯示寫入失敗的詳細錯誤訊息
                 console.error("預約失敗:", error);
                 alert("預約失敗，請稍後再試。");
             }
+        } else {
+             alert('請先填寫您的姓名和電話。');
+             bookingModal.style.display = 'none';
+             userInfoModal.style.display = 'flex';
         }
     });
 
@@ -193,20 +226,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     closeBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
+        bookingModal.style.display = 'none';
     });
     
     window.onclick = (event) => {
-        if (event.target === modal) {
-            modal.style.display = 'none';
+        if (event.target === bookingModal) {
+            bookingModal.style.display = 'none';
         }
     };
 
     initYearSelect();
     renderCalendar();
 });
-
-    initYearSelect();
-    renderCalendar();
-});
-
