@@ -344,7 +344,7 @@
 
     <main class="container">
         <section class="coach-info">
-            <img src="https://placehold.co/150x150/007bff/ffffff?text=Coach" alt="蝦仁教練" class="coach-photo">
+            <img src="image.png" alt="蝦仁教練" class="coach-photo">
             <h2>蝦仁教練</h2>
             <p>你好！我是蝦仁教練，擁有十年游泳教學經驗，擅長兒童、成人游泳基礎教學及各項泳姿調整。期待在泳池與你相見！</p>
         </section>
@@ -381,8 +381,8 @@
         
         <!-- 管理員功能區塊 -->
         <section id="admin-section" class="admin-section">
-            <h2>管理員功能：查詢及刪除預約</h2>
-            <p>輸入已預約的姓名和電話以查詢預約資料。</p>
+            <h2>管理員功能：查詢所有預約及刪除</h2>
+            <p>請輸入您的教練姓名和電話來進行管理員身分驗證。</p>
             <div class="form-group">
                 <label for="admin-name">姓名：</label>
                 <input type="text" id="admin-name">
@@ -391,7 +391,7 @@
                 <label for="admin-phone">電話：</label>
                 <input type="tel" id="admin-phone">
             </div>
-            <button id="search-booking-btn" class="search-button">查詢預約</button>
+            <button id="search-booking-btn" class="search-button">查詢所有預約</button>
             
             <div id="search-results">
                 <!-- 查詢結果會顯示在這裡 -->
@@ -490,6 +490,10 @@
             const MAX_CAPACITY = 4;
             // 所有可用的預約時段
             const ALL_TIME_SLOTS = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
+            
+            // 預設的管理員（教練）帳號，請在這裡修改您的教練姓名和電話
+            const COACH_NAME = '仁';
+            const COACH_PHONE = '0970610005';
 
             // 儲存使用者資訊的變數
             let userName = '';
@@ -556,11 +560,10 @@
                     );
                     const querySnapshot = await getDocs(q);
                     
-                    // 這裡改變了：用來儲存每個時段的預約人數
                     const bookedSlotCounts = {};
                     querySnapshot.forEach(doc => {
                         const slot = doc.data();
-                        const slotKey = `${slot.date}-${slot.time}`; // 使用日期和時間作為唯一鍵
+                        const slotKey = `${slot.date}-${slot.time}`;
                         bookedSlotCounts[slotKey] = (bookedSlotCounts[slotKey] || 0) + 1;
                     });
                     
@@ -583,7 +586,6 @@
                             day.classList.add('today');
                         }
                         
-                        // 檢查這一天是否有任何未額滿的時段
                         const hasAvailableSlot = ALL_TIME_SLOTS.some(time => {
                             const slotKey = `${formattedDate}-${time}`;
                             return (bookedSlotCounts[slotKey] || 0) < MAX_CAPACITY;
@@ -648,7 +650,6 @@
                 if (selectedSlotElement && userName && userPhone) {
                     const slotTime = selectedSlotElement.textContent.split(' ')[0]; // 提取時段，例如 '09:00'
 
-                    // 新增：再次檢查是否額滿，防止多個使用者同時預約
                     const schedulesCollection = collection(db, 'schedules');
                     const q = query(
                         schedulesCollection,
@@ -724,7 +725,7 @@
             };
             
             // ----------------------------------------------------------------
-            // 管理員功能邏輯
+            // 管理員功能邏輯 (已修改)
             // ----------------------------------------------------------------
             searchBookingBtn.addEventListener('click', searchBookings);
 
@@ -732,29 +733,37 @@
                 const name = adminNameInput.value.trim();
                 const phone = adminPhoneInput.value.trim();
                 
-                if (!name || !phone) {
-                    alert('請同時輸入姓名和電話以進行查詢。');
+                // 檢查輸入的姓名和電話是否符合管理員帳號
+                if (name !== COACH_NAME || phone !== COACH_PHONE) {
+                    alert('您輸入的教練帳號或密碼不正確。');
+                    searchResultsDiv.innerHTML = '<p>管理員身分驗證失敗。</p>';
                     return;
                 }
                 
-                searchResultsDiv.innerHTML = '正在查詢中...';
+                searchResultsDiv.innerHTML = '正在查詢所有預約中...';
                 
                 try {
                     const schedulesCollection = collection(db, 'schedules');
-                    const q = query(schedulesCollection, where('userPhone', '==', phone));
-                    const querySnapshot = await getDocs(q);
+                    // 當身分驗證成功後，查詢所有預約
+                    const querySnapshot = await getDocs(schedulesCollection);
                     
                     const results = [];
                     querySnapshot.forEach(doc => {
                         const booking = doc.data();
-                        if (booking.userName === name) {
-                            results.push({ id: doc.id, ...booking });
+                        results.push({ id: doc.id, ...booking });
+                    });
+                    
+                    // 根據日期和時間排序結果，方便管理員查看
+                    results.sort((a, b) => {
+                        if (a.date === b.date) {
+                            return a.time.localeCompare(b.time);
                         }
+                        return a.date.localeCompare(b.date);
                     });
                     
                     displaySearchResults(results);
                 } catch (error) {
-                    console.error("查詢預約失敗:", error);
+                    console.error("查詢所有預約失敗:", error);
                     searchResultsDiv.innerHTML = '<p>查詢預約時發生錯誤，請稍後再試。</p>';
                 }
             }
@@ -762,14 +771,15 @@
             function displaySearchResults(results) {
                 searchResultsDiv.innerHTML = '';
                 if (results.length === 0) {
-                    searchResultsDiv.innerHTML = '<p>找不到符合條件的預約。</p>';
+                    searchResultsDiv.innerHTML = '<p>目前沒有任何預約記錄。</p>';
                     return;
                 }
                 
                 results.forEach(booking => {
                     const resultDiv = document.createElement('p');
                     resultDiv.innerHTML = `
-                        ${booking.userName} (${booking.userPhone}) 預約了 ${booking.date} ${booking.time}
+                        **${booking.date} ${booking.time}**<br>
+                        預約人：${booking.userName} (${booking.userPhone})
                         <button class="delete-button" data-id="${booking.id}">刪除</button>
                     `;
                     searchResultsDiv.appendChild(resultDiv);
@@ -778,7 +788,8 @@
                 document.querySelectorAll('.delete-button').forEach(button => {
                     button.addEventListener('click', (e) => {
                         const docId = e.target.getAttribute('data-id');
-                        if (confirm('確定要刪除這筆預約嗎？')) {
+                        // 確保管理員身分再次驗證，以防誤操作
+                        if (confirm('確定要刪除這筆預約嗎？此操作無法復原！')) {
                             deleteBooking(docId);
                         }
                     });
@@ -804,3 +815,4 @@
     </script>
 </body>
 </html>
+
