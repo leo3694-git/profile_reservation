@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>游泳教練阿仁 預約系統</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #e6f4f9;
+    margin: 0;
+    padding: 0;
+    color: #333;
+  }
+  header {
+    background-color: #4fb4e8;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  .container {
+    max-width: 1000px;
+    margin: auto;
+    padding: 1rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .coach-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    flex: 1 1 250px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .coach-card img {
+    width: 100%;
+    max-width: 250px;
+    border-radius: 12px;
+  }
+  .calendar {
+    flex: 2 1 500px;
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+  .calendar table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .calendar th, .calendar td {
+    text-align: center;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .calendar th {
+    background-color: #b2e4f6;
+  }
+  .calendar td:hover {
+    background-color: #d0f0fa;
+  }
+  .calendar td.selected {
+    background-color: #4fb4e8;
+    color: white;
+  }
+  .time-slots {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+  .slot {
+    display: inline-block;
+    background-color: #4fb4e8;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    margin: 0.25rem;
+    cursor: pointer;
+  }
+  .slot.booked {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+</style>
+</head>
+<body>
+
+<header>🏊‍♂️ 游泳教練阿仁 預約系統</header>
+
+<div class="container">
+  <!-- 教練資料 -->
+  <div class="coach-card">
+    <img src=""C:\Users\Leo Chang\Desktop\leo\PY\張仁預約資料\image.png"">
+    <h2>阿仁</h2>
+    <p>專業游泳教練，擅長成人、兒童游泳教學與技巧訓練。</p>
+  </div>
+
+  <!-- 行事曆 -->
+  <div class="calendar">
+    <h3>選擇日期</h3>
+    <table id="calendarTable"></table>
+  </div>
+</div>
+
+<!-- 可預約時段 -->
+<div class="time-slots" id="timeSlots">
+  <h3>請先選擇日期</h3>
+</div>
+
+<script>
+  // 假的可預約時段資料
+  const mockAvailability = {
+    "2025-08-15": ["09:00", "10:00", "14:00", "15:00"],
+    "2025-08-16": ["08:00", "09:00", "11:00", "13:00", "16:00"],
+    "2025-08-17": ["10:00", "11:00"],
+  };
+
+  const calendarTable = document.getElementById("calendarTable");
+  const timeSlotsDiv = document.getElementById("timeSlots");
+  let selectedDate = null;
+
+  // 建立本月行事曆
+  function buildCalendar(year, month) {
+    calendarTable.innerHTML = "";
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startDay = firstDay.getDay(); // 星期幾開始
+
+    const monthNames = ["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"];
+    const headerRow = `<tr><th colspan="7">${year}年 ${monthNames[month]}</th></tr>`;
+    const dayRow = `<tr><th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th></tr>`;
+    calendarTable.innerHTML += headerRow + dayRow;
+
+    let date = 1;
+    for (let i = 0; i < 6; i++) {
+      let row = "<tr>";
+      for (let j = 0; j < 7; j++) {
+        if (i === 0 && j < startDay) {
+          row += "<td></td>";
+        } else if (date > daysInMonth) {
+          row += "<td></td>";
+        } else {
+          const fullDate = `${year}-${String(month+1).padStart(2,'0')}-${String(date).padStart(2,'0')}`;
+          row += `<td data-date="${fullDate}">${date}</td>`;
+          date++;
+        }
+      }
+      row += "</tr>";
+      calendarTable.innerHTML += row;
+    }
+
+    // 點擊日期事件
+    calendarTable.querySelectorAll("td[data-date]").forEach(td => {
+      td.addEventListener("click", () => {
+        calendarTable.querySelectorAll("td").forEach(cell => cell.classList.remove("selected"));
+        td.classList.add("selected");
+        selectedDate = td.dataset.date;
+        showTimeSlots(selectedDate);
+      });
+    });
+  }
+
+  // 顯示時段
+  function showTimeSlots(date) {
+    timeSlotsDiv.innerHTML = `<h3>${date} 可預約時段</h3>`;
+    const slots = mockAvailability[date] || [];
+    if (slots.length === 0) {
+      timeSlotsDiv.innerHTML += "<p>此日期沒有可預約時段</p>";
+    } else {
+      slots.forEach(time => {
+        const slot = document.createElement("div");
+        slot.className = "slot";
+        slot.textContent = time;
+        slot.addEventListener("click", () => {
+          alert(`您預約了 ${date} ${time} 的課程`);
+        });
+        timeSlotsDiv.appendChild(slot);
+      });
+    }
+  }
+
+  // 初始化行事曆（本月）
+  const today = new Date();
+  buildCalendar(today.getFullYear(), today.getMonth());
+</script>
+
+</body>
+</html>
