@@ -4,7 +4,287 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>蝦仁教練 游泳課程預約</title>
-    <link rel="stylesheet" href="style.css">
+    <!-- 所有的CSS樣式都已內嵌在這裡，取代style.css -->
+    <style>
+        :root {
+            --primary-color: #007BFF;
+            --secondary-color: #28a745;
+            --accent-color: #007BFF;
+            --background-color: #f4f7f6;
+            --card-background: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 2rem 1rem;
+            box-shadow: 0 4px 6px var(--shadow-color);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .coach-info {
+            background-color: var(--card-background);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px var(--shadow-color);
+            text-align: center;
+        }
+
+        .coach-photo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 1rem;
+            border: 3px solid var(--secondary-color);
+        }
+
+        h1, h2 {
+            color: var(--primary-color);
+        }
+
+        .calendar-section {
+            background-color: var(--card-background);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .calendar-header button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: background-color 0.3s;
+        }
+
+        .calendar-header button:hover {
+            background-color: #0056b3;
+        }
+
+        .calendar-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 1rem;
+        }
+
+        .calendar-controls select {
+            padding: 0.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            text-align: center;
+        }
+
+        .weekday {
+            font-weight: bold;
+            color: var(--primary-color);
+            padding: 0.5rem;
+        }
+
+        .day {
+            padding: 0.75rem;
+            border-radius: 8px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+            user-select: none;
+        }
+
+        .day:hover {
+            background-color: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .day.empty-day {
+            background-color: transparent;
+            cursor: default;
+        }
+
+        .day.unavailable {
+            background-color: #e9ecef;
+            color: #adb5bd;
+            cursor: not-allowed;
+        }
+
+        .day.has-slots {
+            background-color: var(--secondary-color);
+            color: white;
+            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+        }
+
+        .day.today {
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000; /* 增加z-index以確保彈窗在最上層 */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--card-background);
+            margin: auto;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px var(--shadow-color);
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+            text-align: left;
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .time-slot {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 0.75rem 1.25rem;
+            margin: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .time-slot:hover {
+            background-color: #ddd;
+        }
+
+        .time-slot.selected {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .confirm-button {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .confirm-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .confirm-button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+
+        #submit-user-info {
+            margin-top: 1rem;
+            background-color: #4caf50;
+        }
+
+        #firebase-error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            text-align: center;
+            display: none; /* 預設隱藏 */
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                margin: 1rem auto;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .coach-info, .calendar-section {
+                padding: 1rem;
+            }
+            
+            .day {
+                font-size: 0.8rem;
+                padding: 0.5rem;
+            }
+            
+            .modal-content {
+                padding: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -14,12 +294,20 @@
 
     <main class="container">
         <section class="coach-info">
-            <img src="coach.png" alt="蝦仁教練" class="coach-photo">
+            <!-- 替換為你的教練圖片 URL -->
+            <img src="https://placehold.co/150x150/007bff/ffffff?text=Coach" alt="蝦仁教練" class="coach-photo">
             <h2>蝦仁教練</h2>
             <p>你好！我是蝦仁教練，擁有十年游泳教學經驗，擅長兒童、成人游泳基礎教學及各項泳姿調整。期待在泳池與你相見！</p>
         </section>
 
         <section class="calendar-section">
+            <div id="firebase-error-message">
+                <p><strong>錯誤：無法連接到 Firebase。</strong></p>
+                <p>請檢查您的 Firebase 專案設定。</p>
+                <p>一個可能的原因是 **「匿名登入」** 功能尚未在 Firebase Console 中啟用。</p>
+                <p>請前往：Firebase Console > Authentication > Sign-in method > Anonymous，然後啟用此功能。</p>
+            </div>
+            
             <div class="calendar-header">
                 <button id="prev-month">&lt;</button>
                 <h2 id="current-month-year"></h2>
@@ -42,6 +330,7 @@
             </div>
         </section>
         
+        <!-- 使用者資訊輸入彈窗 -->
         <div id="user-info-modal" class="modal active">
             <div class="modal-content">
                 <h3>請輸入您的聯絡資訊</h3>
@@ -57,6 +346,7 @@
             </div>
         </div>
 
+        <!-- 預約時段選擇彈窗 -->
         <div id="booking-modal" class="modal">
             <div class="modal-content">
                 <span class="close-button">&times;</span>
@@ -68,6 +358,290 @@
         </div>
     </main>
 
-    <script type="module" src="script.js"></script>
+    <!-- 腳本邏輯都已內嵌在這裡，取代script.js -->
+    <script type="module">
+        // ----------------------------------------------------------------
+        // Firebase 設定
+        // ----------------------------------------------------------------
+        // 使用 Firebase v9 模組化語法，確保語法一致性
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        // 你的 Firebase 設定，請確保這是你專案的正確設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyDrevpcWddVfJRqRcyxqMR70af_GAIXlFQ",
+            authDomain: "coach-reservation.firebaseapp.com",
+            projectId: "coach-reservation",
+            storageBucket: "coach-reservation.firebasestorage.app",
+            messagingSenderId: "580815027044",
+            appId: "1:580815027044:web:3fc66b1fd0d797d7f31871"
+        };
+        
+        // 初始化 Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // ----------------------------------------------------------------
+        // 網頁邏輯
+        // ----------------------------------------------------------------
+        document.addEventListener('DOMContentLoaded', () => {
+            // 取得所有需要的DOM元素
+            const calendarGrid = document.querySelector('.calendar-grid');
+            const currentMonthYear = document.getElementById('current-month-year');
+            const prevMonthBtn = document.getElementById('prev-month');
+            const nextMonthBtn = document.getElementById('next-month');
+            const yearSelect = document.getElementById('year-select');
+            
+            const userInfoModal = document.getElementById('user-info-modal');
+            const userNameInput = document.getElementById('user-name');
+            const userPhoneInput = document.getElementById('user-phone');
+            const submitUserInfoBtn = document.getElementById('submit-user-info');
+            
+            const bookingModal = document.getElementById('booking-modal');
+            const closeBtn = document.querySelector('.close-button');
+            const modalDate = document.getElementById('modal-date');
+            const timeSlotsContainer = document.getElementById('time-slots');
+            const confirmBookingBtn = document.getElementById('confirm-booking');
+            
+            const firebaseErrorDiv = document.getElementById('firebase-error-message');
+
+            // 初始化日期變數
+            let currentMonth = new Date().getMonth();
+            let currentYear = new Date().getFullYear();
+            let selectedDate = null;
+            
+            // 所有可用的預約時段
+            const ALL_TIME_SLOTS = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
+
+            // 儲存使用者資訊的變數
+            let userName = '';
+            let userPhone = '';
+
+            // 確保在載入時就顯示使用者資訊表單
+            userInfoModal.style.display = 'flex';
+
+            // 匿名登入並處理成功或失敗
+            // 這個步驟是必要的，因為 Firestore 的規則要求使用者必須經過認證
+            signInAnonymously(auth).then(() => {
+                console.log("匿名登入成功！");
+                // 成功登入後才渲染日曆，避免權限錯誤
+                renderCalendar();
+            }).catch((error) => {
+                console.error("匿名登入失敗:", error);
+                // 如果匿名登入失敗，顯示自定義的錯誤訊息，引導使用者解決問題
+                firebaseErrorDiv.style.display = 'block';
+            });
+
+            // 處理「使用者資訊」彈窗的「確認」按鈕點擊事件
+            submitUserInfoBtn.addEventListener('click', () => {
+                const name = userNameInput.value.trim();
+                const phone = userPhoneInput.value.trim();
+                
+                if (name && phone) {
+                    userName = name;
+                    userPhone = phone;
+                    userInfoModal.style.display = 'none';
+                } else {
+                    alert('請完整填寫姓名和電話。');
+                }
+            });
+
+            // 初始化年份下拉選單
+            function initYearSelect() {
+                const currentYear = new Date().getFullYear();
+                for (let i = currentYear; i <= 2050; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = i;
+                    if (i === currentYear) {
+                        option.selected = true;
+                    }
+                    yearSelect.appendChild(option);
+                }
+            }
+
+            // 渲染日曆的主要函數
+            async function renderCalendar() {
+                calendarGrid.innerHTML = '';
+                const date = new Date(currentYear, currentMonth, 1);
+                const firstDayOfMonth = date.getDay();
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                
+                currentMonthYear.textContent = `${currentYear} 年 ${currentMonth + 1} 月`;
+                yearSelect.value = currentYear;
+
+                const formattedMonth = String(currentMonth + 1).padStart(2, '0');
+                
+                try {
+                    // 修正問題：Firestore 複合查詢需要索引，但我們無法在 Canvas 中建立。
+                    // 解決方法：我們只使用日期範圍查詢，然後在 JavaScript 中手動過濾 `isBooked` 欄位。
+                    const schedulesCollection = collection(db, 'schedules');
+                    // 簡化 Firestore 查詢，只根據日期範圍獲取文件
+                    const q = query(
+                        schedulesCollection,
+                        where('date', '>=', `${currentYear}-${formattedMonth}-01`),
+                        where('date', '<=', `${currentYear}-${formattedMonth}-${daysInMonth}`)
+                    );
+                    const querySnapshot = await getDocs(q);
+                    
+                    const bookedSlotsByDate = {};
+                    querySnapshot.forEach(doc => {
+                        const slot = doc.data();
+                        // 在 JavaScript 中過濾已預約的時段
+                        if (slot.isBooked) {
+                            const slotDate = slot.date;
+                            if (!bookedSlotsByDate[slotDate]) {
+                                bookedSlotsByDate[slotDate] = new Set();
+                            }
+                            bookedSlotsByDate[slotDate].add(slot.time);
+                        }
+                    });
+                    
+                    // 渲染空白日期
+                    for (let i = 0; i < firstDayOfMonth; i++) {
+                        const emptyDay = document.createElement('div');
+                        emptyDay.classList.add('day', 'empty-day');
+                        calendarGrid.appendChild(emptyDay);
+                    }
+
+                    // 渲染當月所有日期
+                    for (let i = 1; i <= daysInMonth; i++) {
+                        const day = document.createElement('div');
+                        day.classList.add('day');
+                        day.textContent = i;
+                        
+                        const today = new Date();
+                        const formattedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                        const currentDayDate = new Date(formattedDate);
+                        
+                        if (i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
+                            day.classList.add('today');
+                        }
+
+                        const bookedTimesForDay = bookedSlotsByDate[formattedDate] || new Set();
+                        const unbookedSlots = ALL_TIME_SLOTS.filter(time => !bookedTimesForDay.has(time));
+
+                        if (currentDayDate < today.setHours(0,0,0,0)) {
+                            day.classList.add('unavailable');
+                        } else if (unbookedSlots.length > 0) {
+                            day.classList.add('has-slots');
+                            day.addEventListener('click', () => {
+                                if (!userName || !userPhone) {
+                                    // 如果使用者資訊未填寫，先顯示使用者資訊彈窗
+                                    userInfoModal.style.display = 'flex';
+                                } else {
+                                    // 否則顯示預約時段彈窗
+                                    showBookingModal(formattedDate, unbookedSlots);
+                                }
+                            });
+                        } else {
+                            day.classList.add('unavailable');
+                        }
+                        
+                        calendarGrid.appendChild(day);
+                    }
+                } catch (error) {
+                    console.error("渲染日曆失敗:", error);
+                    alert("載入預約資訊失敗，請檢查網路連線或稍後再試。");
+                }
+            }
+
+            // 顯示預約時段彈窗的函數
+            function showBookingModal(date, slots) {
+                bookingModal.style.display = 'block';
+                modalDate.textContent = date;
+                timeSlotsContainer.innerHTML = '';
+                confirmBookingBtn.disabled = true;
+                selectedDate = date;
+
+                slots.forEach(slotTime => {
+                    const timeSlot = document.createElement('div');
+                    timeSlot.classList.add('time-slot');
+                    timeSlot.textContent = slotTime;
+                    
+                    timeSlot.addEventListener('click', () => {
+                        document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                        timeSlot.classList.add('selected');
+                        confirmBookingBtn.disabled = false;
+                    });
+                    timeSlotsContainer.appendChild(timeSlot);
+                });
+            }
+            
+            // 處理「預約時段」彈窗的「確認預約」按鈕點擊事件
+            confirmBookingBtn.addEventListener('click', async () => {
+                const selectedSlotElement = document.querySelector('.time-slot.selected');
+                if (selectedSlotElement && userName && userPhone) {
+                    const slotTime = selectedSlotElement.textContent;
+
+                    try {
+                        const schedulesCollection = collection(db, 'schedules');
+                        await addDoc(schedulesCollection, {
+                            date: selectedDate,
+                            time: slotTime,
+                            isBooked: true,
+                            userName: userName,
+                            userPhone: userPhone
+                        });
+                        
+                        alert(`恭喜您，${userName}！已成功預約 ${selectedDate} ${slotTime} 的課程。`);
+                        bookingModal.style.display = 'none';
+                        renderCalendar(); // 預約成功後重新渲染日曆
+                    } catch (error) {
+                        console.error("預約失敗:", error);
+                        alert("預約失敗，請稍後再試。");
+                    }
+                } else {
+                    // 如果使用者資訊在預約前被清空，再次提示並顯示彈窗
+                    alert('請先填寫您的姓名和電話。');
+                    bookingModal.style.display = 'none';
+                    userInfoModal.style.display = 'flex';
+                }
+            });
+
+            // 上一個月按鈕
+            prevMonthBtn.addEventListener('click', () => {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                renderCalendar();
+            });
+
+            // 下一個月按鈕
+            nextMonthBtn.addEventListener('click', () => {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                renderCalendar();
+            });
+
+            // 年份下拉選單變更
+            yearSelect.addEventListener('change', (e) => {
+                currentYear = parseInt(e.target.value);
+                renderCalendar();
+            });
+            
+            // 預約彈窗的關閉按鈕
+            closeBtn.addEventListener('click', () => {
+                bookingModal.style.display = 'none';
+            });
+            
+            // 點擊彈窗以外的地方關閉彈窗
+            window.onclick = (event) => {
+                if (event.target === bookingModal) {
+                    bookingModal.style.display = 'none';
+                }
+            };
+
+            // 網頁載入時初始化
+            initYearSelect();
+        });
+    </script>
 </body>
 </html>
