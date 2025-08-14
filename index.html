@@ -146,7 +146,7 @@
         <!-- 教練資訊區塊 -->
         <section class="bg-white p-6 md:p-10 rounded-2xl shadow-xl flex flex-col md:flex-row items-center gap-8">
             <!-- 註解：請在這裡替換你的教練照片。 -->
-            <img src="coach.png" alt="教練大頭貼" class="w-40 h-40 rounded-full object-cover border-4 border-green-500 shadow-md">
+            <img src="https://placehold.co/180x180/007BFF/FFFFFF?text=Coach" alt="教練大頭貼" class="w-40 h-40 rounded-full object-cover border-4 border-green-500 shadow-md">
             <div class="text-center md:text-left">
                 <h2 class="text-3xl font-bold text-blue-600 mb-2">仁教練</h2>
                 <p class="text-gray-600 text-lg">
@@ -180,6 +180,25 @@
             </div>
         </section>
         
+        <!-- 使用者自助查詢與刪除區塊 (新增) -->
+        <section id="user-manage-section" class="bg-white p-6 md:p-10 rounded-2xl shadow-xl">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">查詢及刪除我的預約</h2>
+            <div class="space-y-4">
+                <div class="flex flex-col">
+                    <label for="user-manage-name" class="text-gray-700 mb-1">姓名：</label>
+                    <input type="text" id="user-manage-name" class="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex flex-col">
+                    <label for="user-manage-phone" class="text-gray-700 mb-1">電話：</label>
+                    <input type="tel" id="user-manage-phone" class="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <button id="search-my-bookings-btn" class="mt-6 w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition-colors">查詢我的預約</button>
+            <div id="user-bookings-results" class="mt-6 space-y-3">
+                <!-- 查詢結果會顯示在這裡 -->
+            </div>
+        </section>
+
         <!-- 管理員功能區塊 -->
         <section id="admin-section" class="bg-white p-6 md:p-10 rounded-2xl shadow-xl">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">管理員功能</h2>
@@ -201,6 +220,7 @@
             <div id="admin-options" class="admin-options mt-6 space-y-4 hidden">
                 <button id="search-booking-btn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg transition-colors">查詢所有預約及刪除</button>
                 <button id="toggle-leave-mode-btn" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-lg transition-colors">切換請假模式</button>
+                <button id="view-deletion-history-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 rounded-lg transition-colors">查看刪除紀錄</button>
             </div>
             
             <div id="search-results" class="mt-6 space-y-3">
@@ -247,8 +267,19 @@
                 </div>
             </div>
         </div>
+        
+        <!-- 刪除紀錄彈窗 (新增) -->
+        <div id="deletion-history-modal" class="modal fixed inset-0 flex items-center justify-center p-4 modal-background z-50 hidden">
+            <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-lg relative modal-content">
+                <span id="close-deletion-history-modal" class="close-button absolute top-4 right-6 text-gray-400 hover:text-gray-800 text-3xl font-bold transition-colors cursor-pointer">&times;</span>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">預約刪除紀錄</h3>
+                <div id="deletion-history-list" class="mt-6 space-y-4 max-h-96 overflow-y-auto">
+                    <!-- 刪除紀錄內容會動態生成在這裡 -->
+                </div>
+            </div>
+        </div>
 
-        <!-- 自訂訊息彈窗 (新增) -->
+        <!-- 自訂訊息彈窗 -->
         <div id="message-modal" class="modal fixed inset-0 flex items-center justify-center p-4 modal-background z-50 hidden">
             <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm relative modal-content">
                 <div id="message-modal-header" class="px-6 py-4 rounded-t-2xl text-white flex justify-between items-center">
@@ -326,6 +357,11 @@
             const adminModalDate = document.getElementById('admin-modal-date');
             const adminScheduleList = document.getElementById('admin-schedule-list');
 
+            const deletionHistoryModal = document.getElementById('deletion-history-modal');
+            const closeDeletionHistoryModalBtn = document.getElementById('close-deletion-history-modal');
+            const deletionHistoryList = document.getElementById('deletion-history-list');
+            const viewDeletionHistoryBtn = document.getElementById('view-deletion-history-btn');
+
             // 新增：自訂訊息彈窗相關元素
             const messageModal = document.getElementById('message-modal');
             const messageModalHeader = document.getElementById('message-modal-header');
@@ -333,6 +369,13 @@
             const messageModalBody = document.getElementById('message-modal-body');
             const messageModalButtons = document.getElementById('message-modal-buttons');
             const closeMessageModalBtn = document.getElementById('close-message-modal');
+
+            // 新增：使用者自助查詢相關元素
+            const userManageNameInput = document.getElementById('user-manage-name');
+            const userManagePhoneInput = document.getElementById('user-manage-phone');
+            const searchMyBookingsBtn = document.getElementById('search-my-bookings-btn');
+            const userBookingsResultsDiv = document.getElementById('user-bookings-results');
+
 
             let currentMonth = new Date().getMonth();
             let currentYear = new Date().getFullYear();
@@ -352,7 +395,7 @@
             let isLeaveMode = false;
 
             // 新增：顯示自訂訊息彈窗的函數
-            function showMessageModal(title, message, isSuccess = true, onConfirm = null) {
+            function showMessageModal(title, message, isSuccess = true, onConfirm = null, isConfirm = false) {
                 // 重設樣式和內容
                 messageModalHeader.className = '';
                 messageModalHeader.classList.add('px-6', 'py-4', 'rounded-t-2xl', 'text-white', 'flex', 'justify-between', 'items-center');
@@ -368,7 +411,7 @@
                     closeMessageModalBtn.classList.add('hover:text-red-200');
                 }
 
-                if (onConfirm) {
+                if (isConfirm) {
                     // 帶有確認功能的彈窗
                     const confirmBtn = document.createElement('button');
                     confirmBtn.classList.add('flex-1', 'bg-red-500', 'hover:bg-red-600', 'text-white', 'font-bold', 'py-3', 'px-6', 'rounded-lg', 'transition-colors');
@@ -423,6 +466,10 @@
                 }
                 if (event.target === messageModal) {
                     hideMessageModal();
+                }
+                if (event.target === deletionHistoryModal) {
+                    deletionHistoryModal.classList.remove('flex');
+                    deletionHistoryModal.classList.add('hidden');
                 }
             };
 
@@ -689,9 +736,84 @@
                 adminScheduleModal.classList.remove('flex');
                 adminScheduleModal.classList.add('hidden');
             });
+
+            // 關閉刪除紀錄彈窗
+            closeDeletionHistoryModalBtn.addEventListener('click', () => {
+                deletionHistoryModal.classList.remove('flex');
+                deletionHistoryModal.classList.add('hidden');
+            });
             
             // ----------------------------------------------------------------
-            // 管理員功能邏輯 (已修改)
+            // 新增功能：使用者自助查詢與刪除
+            // ----------------------------------------------------------------
+            searchMyBookingsBtn.addEventListener('click', searchUserBookings);
+            
+            async function searchUserBookings() {
+                const name = userManageNameInput.value.trim();
+                const phone = userManagePhoneInput.value.trim();
+
+                if (!name || !phone) {
+                    showMessageModal('錯誤', '請完整輸入您的姓名和電話。', false);
+                    return;
+                }
+
+                userBookingsResultsDiv.innerHTML = '<p class="text-gray-500 text-center">正在查詢您的預約...</p>';
+                
+                try {
+                    const schedulesCollection = collection(db, 'schedules');
+                    const q = query(
+                        schedulesCollection,
+                        where('userName', '==', name),
+                        where('userPhone', '==', phone)
+                    );
+                    const querySnapshot = await getDocs(q);
+
+                    if (querySnapshot.empty) {
+                        userBookingsResultsDiv.innerHTML = '<p class="text-gray-500 text-center">沒有找到任何預約記錄。</p>';
+                        return;
+                    }
+                    
+                    userBookingsResultsDiv.innerHTML = '';
+                    querySnapshot.forEach(doc => {
+                        const booking = doc.data();
+                        const resultDiv = document.createElement('div');
+                        resultDiv.classList.add('flex', 'items-center', 'justify-between', 'bg-gray-100', 'p-4', 'rounded-lg', 'shadow-sm');
+                        resultDiv.innerHTML = `
+                            <div>
+                                <p class="font-semibold text-gray-800">${booking.date} ${booking.time}</p>
+                            </div>
+                            <button class="user-delete-button bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-sm" data-id="${doc.id}" data-date="${booking.date}" data-time="${booking.time}" data-name="${booking.userName}" data-phone="${booking.userPhone}">刪除</button>
+                        `;
+                        userBookingsResultsDiv.appendChild(resultDiv);
+                    });
+
+                    document.querySelectorAll('.user-delete-button').forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            const docId = e.target.getAttribute('data-id');
+                            const bookingData = {
+                                date: e.target.getAttribute('data-date'),
+                                time: e.target.getAttribute('data-time'),
+                                userName: e.target.getAttribute('data-name'),
+                                userPhone: e.target.getAttribute('data-phone'),
+                            };
+                            showMessageModal(
+                                '確認刪除', 
+                                `確定要刪除 ${bookingData.date} ${bookingData.time} 的預約嗎？`, 
+                                false, 
+                                () => deleteBooking(docId, bookingData, '使用者'), // 傳入'使用者'作為刪除者
+                                true
+                            );
+                        });
+                    });
+
+                } catch (error) {
+                    console.error("查詢預約失敗:", error);
+                    userBookingsResultsDiv.innerHTML = '<p class="text-red-500 text-center">查詢預約時發生錯誤，請稍後再試。</p>';
+                }
+            }
+            
+            // ----------------------------------------------------------------
+            // 管理員功能邏輯
             // ----------------------------------------------------------------
             adminLoginBtn.addEventListener('click', () => {
                 const name = adminNameInput.value.trim();
@@ -711,6 +833,7 @@
             });
             
             searchBookingBtn.addEventListener('click', searchBookings);
+            viewDeletionHistoryBtn.addEventListener('click', showDeletionHistory);
             
             async function searchBookings() {
                 if (!isAdmin) {
@@ -761,7 +884,7 @@
                             <p class="font-semibold text-gray-800">${booking.date} ${booking.time}</p>
                             <p class="text-sm text-gray-600">預約人：${booking.userName} (${booking.userPhone})</p>
                         </div>
-                        <button class="delete-button bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-sm" data-id="${booking.id}">刪除</button>
+                        <button class="delete-button bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-sm" data-id="${booking.id}" data-date="${booking.date}" data-time="${booking.time}" data-name="${booking.userName}" data-phone="${booking.userPhone}">刪除</button>
                     `;
                     searchResultsDiv.appendChild(resultDiv);
                 });
@@ -769,22 +892,43 @@
                 document.querySelectorAll('.delete-button').forEach(button => {
                     button.addEventListener('click', (e) => {
                         const docId = e.target.getAttribute('data-id');
+                        const bookingData = {
+                            date: e.target.getAttribute('data-date'),
+                            time: e.target.getAttribute('data-time'),
+                            userName: e.target.getAttribute('data-name'),
+                            userPhone: e.target.getAttribute('data-phone'),
+                        };
                         showMessageModal(
                             '確認刪除', 
                             '確定要刪除這筆預約嗎？此操作無法復原！', 
                             false, 
-                            () => deleteBooking(docId)
+                            () => deleteBooking(docId, bookingData, '教練'), // 傳入'教練'作為刪除者
+                            true
                         );
                     });
                 });
             }
             
-            async function deleteBooking(docId) {
+            async function deleteBooking(docId, bookingData, deletedBy) {
                 try {
                     const bookingDocRef = doc(db, 'schedules', docId);
                     await deleteDoc(bookingDocRef);
+
+                    // 新增：將刪除紀錄寫入 bookingHistory
+                    const bookingHistoryCollection = collection(db, 'bookingHistory');
+                    await addDoc(bookingHistoryCollection, {
+                        ...bookingData,
+                        deletedAt: new Date().toISOString(),
+                        deletedBy: deletedBy
+                    });
+                    
                     showMessageModal('刪除成功', '預約已成功刪除！', true);
-                    searchBookings();
+                    // 根據是誰刪除的，更新對應的畫面
+                    if (deletedBy === '教練') {
+                        searchBookings();
+                    } else {
+                        searchUserBookings();
+                    }
                     renderCalendar();
                 } catch (error) {
                     console.error("刪除預約失敗:", error);
@@ -867,7 +1011,7 @@
                                 <p class="font-semibold text-gray-800">${booking.time}</p>
                                 <p class="text-sm text-gray-600">預約人：${booking.userName} (${booking.userPhone})</p>
                             </div>
-                            <button class="delete-booking-btn bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-sm" data-id="${booking.id}">刪除</button>
+                            <button class="delete-booking-btn bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-sm" data-id="${booking.id}" data-date="${booking.date}" data-time="${booking.time}" data-name="${booking.userName}" data-phone="${booking.userPhone}">刪除</button>
                         `;
                         adminScheduleList.appendChild(bookingItem);
                     });
@@ -875,11 +1019,18 @@
                     document.querySelectorAll('.delete-booking-btn').forEach(button => {
                         button.addEventListener('click', (e) => {
                             const docId = e.target.getAttribute('data-id');
+                            const bookingData = {
+                                date: e.target.getAttribute('data-date'),
+                                time: e.target.getAttribute('data-time'),
+                                userName: e.target.getAttribute('data-name'),
+                                userPhone: e.target.getAttribute('data-phone'),
+                            };
                             showMessageModal(
                                 '確認刪除', 
                                 '確定要刪除這筆預約嗎？此操作無法復原！', 
                                 false, 
-                                () => deleteBookingFromAdminView(docId, date)
+                                () => deleteBooking(docId, bookingData, '教練'),
+                                true
                             );
                         });
                     });
@@ -890,19 +1041,48 @@
                 }
             }
 
-            async function deleteBookingFromAdminView(docId, date) {
+            // ----------------------------------------------------------------
+            // 新增功能：查看刪除記錄
+            // ----------------------------------------------------------------
+            async function showDeletionHistory() {
+                deletionHistoryModal.classList.remove('hidden');
+                deletionHistoryModal.classList.add('flex');
+                deletionHistoryList.innerHTML = '<p class="text-center text-gray-500">正在載入刪除記錄...</p>';
+
                 try {
-                    const bookingDocRef = doc(db, 'schedules', docId);
-                    await deleteDoc(bookingDocRef);
-                    showMessageModal('刪除成功', '預約已成功刪除！', true);
-                    showAdminScheduleModal(date);
-                    renderCalendar();
+                    const bookingHistoryCollection = collection(db, 'bookingHistory');
+                    const querySnapshot = await getDocs(bookingHistoryCollection);
+
+                    if (querySnapshot.empty) {
+                        deletionHistoryList.innerHTML = '<p class="text-center text-gray-500">目前沒有任何刪除記錄。</p>';
+                        return;
+                    }
+
+                    const history = [];
+                    querySnapshot.forEach(doc => {
+                        history.push(doc.data());
+                    });
+                    
+                    history.sort((a, b) => new Date(b.deletedAt) - new Date(a.deletedAt));
+
+                    deletionHistoryList.innerHTML = '';
+                    history.forEach(item => {
+                        const historyItem = document.createElement('div');
+                        historyItem.classList.add('bg-gray-100', 'p-4', 'rounded-lg', 'shadow-sm');
+                        historyItem.innerHTML = `
+                            <p class="font-semibold text-gray-800">日期: ${item.date} ${item.time}</p>
+                            <p class="text-sm text-gray-600">預約人: ${item.userName} (${item.userPhone})</p>
+                            <p class="text-xs text-gray-400 mt-1">刪除者: ${item.deletedBy} | 刪除時間: ${new Date(item.deletedAt).toLocaleString('zh-TW')}</p>
+                        `;
+                        deletionHistoryList.appendChild(historyItem);
+                    });
+
                 } catch (error) {
-                    console.error("刪除預約失敗:", error);
-                    showMessageModal('刪除失敗', '刪除預約失敗，請稍後再試。', false);
+                    console.error("載入刪除記錄失敗:", error);
+                    deletionHistoryList.innerHTML = '<p class="text-red-500 text-center">載入刪除記錄時發生錯誤。</p>';
                 }
             }
-            
+
             initYearSelect();
         });
     </script>
