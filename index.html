@@ -80,14 +80,15 @@
             box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
         }
 
+        /* 更新的時段樣式 */
         .time-slot {
-            @apply bg-gray-100 p-3 rounded-lg text-center cursor-pointer transition-all;
+            @apply bg-gray-100 text-gray-800 p-3 rounded-lg text-center cursor-pointer transition-all border border-gray-200;
         }
         .time-slot:hover:not(.full) {
             @apply bg-gray-200;
         }
         .time-slot.selected {
-            @apply bg-blue-500 text-white;
+            @apply bg-blue-500 text-white border-blue-500;
         }
         .time-slot.full {
             @apply bg-gray-300 text-gray-500 cursor-not-allowed line-through;
@@ -438,6 +439,19 @@
                     console.error("載入預約資訊失敗，請檢查網路連線或稍後再試。");
                 }
             }
+            
+            // 處理「預約時段」彈窗的事件委派
+            timeSlotsContainer.addEventListener('click', (event) => {
+                const clickedSlot = event.target.closest('.time-slot');
+                if (clickedSlot && !clickedSlot.classList.contains('full')) {
+                    // 移除所有時段的選取狀態
+                    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                    // 為被點擊的時段新增選取狀態
+                    clickedSlot.classList.add('selected');
+                    // 啟用確認按鈕
+                    confirmBookingBtn.disabled = false;
+                }
+            });
 
             // 顯示預約時段彈窗的函數
             function showBookingModal(date, bookedSlotCounts) {
@@ -455,16 +469,11 @@
                     
                     const timeSlot = document.createElement('div');
                     timeSlot.classList.add('time-slot');
+                    timeSlot.setAttribute('data-time', slotTime); // 新增 data-time 屬性
                     timeSlot.textContent = `${slotTime} (${currentBookings}/${MAX_CAPACITY})`;
                     
                     if (isFull) {
                         timeSlot.classList.add('full');
-                    } else {
-                        timeSlot.addEventListener('click', () => {
-                            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
-                            timeSlot.classList.add('selected');
-                            confirmBookingBtn.disabled = false;
-                        });
                     }
                     timeSlotsContainer.appendChild(timeSlot);
                 });
@@ -474,8 +483,8 @@
             confirmBookingBtn.addEventListener('click', async () => {
                 const selectedSlotElement = document.querySelector('.time-slot.selected');
                 if (selectedSlotElement && userName && userPhone) {
-                    const slotTime = selectedSlotElement.textContent.split(' ')[0]; // 提取時段，例如 '09:00'
-
+                    const slotTime = selectedSlotElement.getAttribute('data-time'); // 使用 data-time 屬性
+                    
                     const schedulesCollection = collection(db, 'schedules');
                     const q = query(
                         schedulesCollection,
