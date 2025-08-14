@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>蝦仁教練 游泳課程預約</title>
+    <title>仁教練 游泳課程預約</title>
     <!-- 所有的CSS樣式都已內嵌在這裡，取代style.css -->
     <style>
         :root {
@@ -377,14 +377,14 @@
 <body>
 
     <header class="header">
-        <h1>蝦仁教練 游泳課程預約</h1>
+        <h1>仁教練 游泳課程預約</h1>
     </header>
 
     <main class="container">
         <section class="coach-info">
-            <img src="coach.png" alt="蝦仁教練" class="coach-photo">
-            <h2>蝦仁教練</h2>
-            <p>你好！我是蝦仁教練，擁有十年游泳教學經驗，擅長兒童、成人游泳基礎教學及各項泳姿調整。期待在泳池與你相見！</p>
+            <img src="coach.png" alt="仁教練" class="coach-photo">
+            <h2>仁教練</h2>
+            <p>你好！我是仁教練，擁有十年游泳教學經驗，擅長兒童、成人游泳基礎教學及各項泳姿調整。期待在泳池與你相見！</p>
         </section>
 
         <section class="calendar-section">
@@ -541,9 +541,9 @@
             // 新增：每個時段的預約人數上限
             const MAX_CAPACITY = 4;
             // 所有可用的預約時段 (平日)
-            const ALL_TIME_SLOTS = ['09:00', '10:00', '11:00', '13:00','14:00', '15:00', '16:00','17:00','18:00','19:00'];
+            const ALL_TIME_SLOTS = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
             
-            // 預設的管理員（教練）帳號，請在這裡修改您的教練姓名和電話
+            // 預設的管理員（教練）帳號
             const COACH_NAME = '仁';
             const COACH_PHONE = '0970610005';
             
@@ -596,7 +596,12 @@
 
             // 渲染日曆的主要函數
             async function renderCalendar() {
-                calendarGrid.innerHTML = '';
+                // 清空日曆，但保留星期幾的標頭
+                const weekdayHeaders = document.querySelector('.calendar-grid').children;
+                while (calendarGrid.children.length > weekdayHeaders.length) {
+                    calendarGrid.removeChild(calendarGrid.lastChild);
+                }
+
                 const date = new Date(currentYear, currentMonth, 1);
                 const firstDayOfMonth = date.getDay();
                 const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -640,53 +645,38 @@
                     for (let i = 1; i <= daysInMonth; i++) {
                         const day = document.createElement('div');
                         day.textContent = i;
+                        day.classList.add('day'); // 確保每個日期都有基礎的 'day' 樣式
                         
                         const today = new Date();
                         const formattedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
                         const currentDayDate = new Date(formattedDate);
                         
-                        // 檢查是否為請假日期
                         const isLeaveDay = leaveDates.has(formattedDate);
+                        const isPastDay = currentDayDate < today.setHours(0,0,0,0);
+                        const isToday = i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear();
                         
-                        if (i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
-                            day.classList.add('today');
-                        }
-                        
-                        // 檢查日期是否為過去，或是否為教練請假日
-                        if (currentDayDate < today.setHours(0,0,0,0) || isLeaveDay) {
-                            day.classList.add('unavailable');
-                            if (isLeaveDay) {
-                                day.classList.add('coach-leave');
-                            }
-                        } else {
-                            const hasAvailableSlot = ALL_TIME_SLOTS.some(time => {
-                                const slotKey = `${formattedDate}-${time}`;
-                                return (bookedSlotCounts[slotKey] || 0) < MAX_CAPACITY;
-                            });
+                        // 檢查日期是否有預約時段
+                        const hasAvailableSlot = ALL_TIME_SLOTS.some(time => {
+                            const slotKey = `${formattedDate}-${time}`;
+                            return (bookedSlotCounts[slotKey] || 0) < MAX_CAPACITY;
+                        });
 
-                            if (hasAvailableSlot) {
-                                day.classList.add('day');
-                                day.classList.add('has-slots');
-                            } else {
-                                day.classList.add('day');
-                                day.classList.add('unavailable');
-                            }
-                        }
-                        
                         // 根據模式綁定不同的點擊事件
                         if (isAdmin && isLeaveMode) {
-                            day.classList.remove('day'); // 移除基本樣式以防衝突
-                            day.classList.add('day'); // 重新加上樣式
                             if (isLeaveDay) {
                                 day.classList.add('coach-leave');
                                 day.addEventListener('click', () => toggleLeave(formattedDate, false));
                             } else {
-                                day.classList.remove('coach-leave');
                                 day.addEventListener('click', () => toggleLeave(formattedDate, true));
                             }
                         } else { // 一般使用者或管理員非請假模式
-                            if (!day.classList.contains('unavailable')) {
-                                day.classList.add('day');
+                            if (isPastDay || isLeaveDay) {
+                                day.classList.add('unavailable');
+                                if (isLeaveDay) {
+                                    day.classList.add('coach-leave');
+                                }
+                            } else if (hasAvailableSlot) {
+                                day.classList.add('has-slots');
                                 day.addEventListener('click', () => {
                                     if (!userName || !userPhone) {
                                         userInfoModal.style.display = 'flex';
@@ -694,6 +684,12 @@
                                         showBookingModal(formattedDate, bookedSlotCounts);
                                     }
                                 });
+                            } else {
+                                day.classList.add('unavailable');
+                            }
+                            
+                            if (isToday) {
+                                day.classList.add('today');
                             }
                         }
                         
@@ -844,6 +840,7 @@
                 }
                 
                 isLeaveMode = false;
+                toggleLeaveModeBtn.textContent = '切換請假模式';
                 searchResultsDiv.innerHTML = '正在查詢所有預約中...';
                 
                 try {
@@ -957,5 +954,3 @@
     </script>
 </body>
 </html>
-
-
