@@ -1,228 +1,34 @@
-/* 設定全域淺藍色調和基本字體 */
-:root {
-    --primary-color: #e0f7fa; /* 淺藍色 */
-    --secondary-color: #b3e5fc; /* 稍深的淺藍色 */
-    --accent-color: #039be5; /* 藍色 */
-    --text-color: #333;
-}
-
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: var(--primary-color);
-    color: var(--text-color);
-}
-
-.header {
-    background-color: var(--secondary-color);
-    color: #fff;
-    text-align: center;
-    padding: 2rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.container {
-    max-width: 960px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
-
-.coach-info {
-    text-align: center;
-    background-color: #fff;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.coach-photo {
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-bottom: 1rem;
-    border: 5px solid var(--accent-color);
-}
-
-.calendar-section {
-    background-color: #fff;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.calendar-header {
-    display: flex;
-    justify-content: space-between;
+/* 新增：使用者資訊表單的樣式 */
+.modal.active {
+    display: flex; /* 讓它在頁面載入時就顯示 */
     align-items: center;
-    margin-bottom: 1rem;
-}
-
-.calendar-header h2 {
-    margin: 0;
-    color: var(--accent-color);
-}
-
-.calendar-header button {
-    background-color: var(--accent-color);
-    color: #fff;
-    border: none;
-    padding: 0.5rem 1rem;
-    font-size: 1.2rem;
-    cursor: pointer;
-    border-radius: 4px;
-}
-
-.calendar-controls {
-    text-align: center;
-    margin-bottom: 1rem;
-}
-
-#year-select {
-    padding: 0.5rem;
-    border-radius: 4px;
-    border: 1px solid var(--secondary-color);
-}
-
-.calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
-    text-align: center;
-}
-
-.weekday {
-    background-color: var(--secondary-color);
-    color: #fff;
-    padding: 0.5rem;
-    font-weight: bold;
-    border-radius: 4px;
-}
-
-.day {
-    padding: 1rem 0.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    position: relative;
-    border: 1px solid #eee;
-}
-
-.day:not(.empty-day):hover {
-    background-color: #e3f2fd;
-}
-
-.day.today {
-    background-color: var(--accent-color);
-    color: #fff;
-    font-weight: bold;
-}
-
-.day.empty-day {
-    visibility: hidden;
-    cursor: default;
-}
-
-.day.has-slots::after {
-    content: '';
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    width: 8px;
-    height: 8px;
-    background-color: #4caf50;
-    border-radius: 50%;
-}
-
-.day.unavailable {
-    color: #ccc;
-    background-color: #f5f5f5;
-    cursor: not-allowed;
-}
-
-/* 預約彈窗樣式 */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.4);
-    padding-top: 60px;
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 5% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 500px;
-    border-radius: 8px;
-    position: relative;
-}
-
-.close-button {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.close-button:hover,
-.close-button:focus {
-    color: #000;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-#time-slots {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 15px;
     justify-content: center;
 }
 
-.time-slot {
-    padding: 10px 15px;
-    border: 1px solid var(--accent-color);
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
+#user-info-modal .modal-content {
+    text-align: center;
 }
 
-.time-slot:hover {
-    background-color: var(--secondary-color);
-    color: #fff;
+.form-group {
+    margin-bottom: 1rem;
 }
 
-.time-slot.selected {
-    background-color: var(--accent-color);
-    color: #fff;
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
     font-weight: bold;
+    color: var(--accent-color);
 }
 
-.confirm-button {
-    width: 100%;
-    padding: 10px;
-    margin-top: 20px;
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    border-radius: 5px;
+.form-group input {
+    width: 80%;
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
     font-size: 1rem;
-    cursor: pointer;
 }
 
-.confirm-button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+#submit-user-info {
+    margin-top: 1rem;
+    background-color: #4caf50;
 }
