@@ -3,1197 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>仁教練 游泳課程預約</title>
-    <!-- 使用 Google Fonts 導入 Inter 字體 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- 引入 Tailwind CSS CDN -->
+    <title>教練預約系統</title>
+    <!-- Import Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 自定義 CSS 變數 */
-        :root {
-            --primary-color: #007BFF;
-            --secondary-color: #28a745;
-            --accent-color: #007BFF;
-            --background-color: #f4f7f6;
-            --card-background: #ffffff;
-            --text-color: #333333;
-            --border-color: #e0e0e0;
-            --shadow-color: rgba(0, 0, 0, 0.1);
-            --leave-color: #ffc107;
-        }
-
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #f7f9fc;
         }
-        
-        /* 自定義日曆樣式以匹配 Tailwind */
-        .day {
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            background-color: #f3f4f6; /* Tailwind gray-100 */
+        .container {
+            max-width: 1280px;
+        }
+        .tab-button {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background-color 0.2s ease-in-out, color 0.2s ease-in-out;
             cursor: pointer;
-            transition: all 0.2s;
-            user-select: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 4rem; /* 確保格子高度一致 */
+        }
+        .tab-button.active {
+            background-color: #2563eb;
+            color: #ffffff;
             font-weight: 600;
         }
-
-        .day:hover {
-            background-color: #e5e7eb; /* Tailwind gray-200 */
-            transform: translateY(-2px);
-        }
-
-        .day.empty-day {
-            background-color: transparent;
-            cursor: default;
-        }
-
-        .day.unavailable {
-            background-color: #e9ecef;
-            color: #adb5bd;
-            cursor: not-allowed;
-        }
-        
-        .day.coach-leave {
-            background-color: var(--leave-color);
-            color: white;
-            box-shadow: 0 2px 4px rgba(255, 193, 7, 0.4);
-        }
-        
-        .day.coach-leave:hover {
-            background-color: #e0a800;
-        }
-
-        .day.has-slots {
-            background-color: var(--secondary-color);
-            color: white;
-            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
-        }
-        
-        .day.has-slots:hover {
-            background-color: #218838; /* Slightly darker green on hover */
-        }
-
-        .day.today {
-            border: 2px solid var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
-        }
-        
-        /* 修正後的時段樣式，直接使用標準 CSS */
-        .time-slot {
-            background-color: #f3f4f6; /* Tailwind 的 gray-100 */
-            color: #374151; /* Tailwind 的 gray-800 */
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            text-align: center;
+        .coach-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid #e5e7eb; /* Tailwind 的 gray-200 */
         }
-        .time-slot:hover:not(.full) {
-            background-color: #e5e7eb; /* Tailwind 的 gray-200 */
+        .coach-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
-        .time-slot.selected {
-            background-color: #2563eb; /* Tailwind 的 blue-600 */
-            color: white;
-            border-color: #2563eb;
-            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.5); /* 強調選取狀態 */
-            transform: scale(1.05);
+        .sidebar {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
-        .time-slot.full {
-            background-color: #d1d5db; /* Tailwind 的 gray-300 */
-            color: #6b7280; /* Tailwind 的 gray-500 */
-            cursor: not-allowed;
-            text-decoration: line-through;
+        .coach-image-container {
+            width: 120px;
+            height: 120px;
+            min-width: 120px;
+            min-height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid #f3f4f6;
+            flex-shrink: 0;
         }
-
-        /* 彈窗淡入動畫 */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
+        .coach-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
-
-        .modal-background {
-            background-color: rgba(0, 0, 0, 0.4);
+        .category-icon {
+            filter: grayscale(100%) brightness(0) saturate(0) opacity(70%);
+            transition: filter 0.2s ease-in-out;
         }
-        
-        .modal-content {
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        /* 讓確認按鈕也有明顯的啟用/停用狀態 */
-        button:disabled {
-            background-color: #cbd5e1; /* Tailwind 的 gray-300 */
-            cursor: not-allowed;
-            opacity: 0.6;
+        .tab-button:hover .category-icon, .tab-button.active .category-icon {
+            filter: none;
         }
     </style>
 </head>
-<body class="bg-blue-50">
+<body class="bg-gray-100 flex flex-col min-h-screen">
 
-    <header class="bg-white shadow-lg py-8">
-        <div class="max-w-4xl mx-auto px-4 text-center">
-            <h1 class="text-4xl font-extrabold text-blue-600">蝦仁教練 游泳課程預約</h1>
+    <!-- Header navigation bar -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <h1 class="text-2xl font-bold text-gray-800">林口教練課程預約系統</h1>
+            <nav class="flex space-x-4">
+                <!-- Here can be other global navigation items if needed later -->
+            </nav>
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto p-4 md:p-8 space-y-8">
-        <!-- 教練資訊區塊 -->
-        <section class="bg-white p-6 md:p-10 rounded-2xl shadow-xl flex flex-col md:flex-row items-center gap-8">
-            <!-- 註解：請在這裡替換你的教練照片。 -->
-            <img src="coach.png" alt="教練大頭貼" class="w-40 h-40 rounded-full object-cover border-4 border-green-500 shadow-md">
-            <div class="text-center md:text-left">
-                <h2 class="text-3xl font-bold text-blue-600 mb-2">蝦仁教練</h2>
-                <p class="text-gray-600 text-lg">
-                    你好！我是仁教練，擁有十年游泳教學經驗，擅長兒童、成人游泳基礎教學及各項泳姿調整。期待在泳池與你相見！
-                </p>
+    <!-- Main content area -->
+    <main class="container mx-auto px-4 py-8 flex-1 flex flex-col md:flex-row gap-8">
+
+        <!-- Main content: category tabs and coach list -->
+        <section class="flex-1 space-y-8">
+            <div class="bg-white rounded-xl p-6 sidebar">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6">課程類別</h2>
+                <!-- Category tabs, now a responsive grid -->
+                <div id="category-tabs" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <button data-category="游泳" class="tab-button bg-white rounded-lg p-4 flex flex-col items-center justify-center space-y-2 shadow hover:bg-blue-500 hover:text-white">
+                        <img src="swim.png" alt="游泳" class="w-10 h-10 category-icon">
+                        <span class="text-gray-800 tab-text">游泳</span>
+                    </button>
+                    <button data-category="直排輪" class="tab-button bg-white rounded-lg p-4 flex flex-col items-center justify-center space-y-2 shadow hover:bg-blue-500 hover:text-white">
+                        <img src="https://placehold.co/40x40/E2E8F0/1A202C?text=直排輪" alt="直排輪" class="w-10 h-10 category-icon">
+                        <span class="text-gray-800 tab-text">直排輪</span>
+                    </button>
+                    <button data-category="鋼琴" class="tab-button bg-white rounded-lg p-4 flex flex-col items-center justify-center space-y-2 shadow hover:bg-blue-500 hover:text-white">
+                        <img src="https://placehold.co/40x40/E2E8F0/1A202C?text=鋼琴" alt="鋼琴" class="w-10 h-10 category-icon">
+                        <span class="text-gray-800 tab-text">鋼琴</span>
+                    </button>
+                    <button data-category="舞蹈" class="tab-button bg-white rounded-lg p-4 flex flex-col items-center justify-center space-y-2 shadow hover:bg-blue-500 hover:text-white">
+                        <img src="https://placehold.co/40x40/E2E8F0/1A202C?text=舞蹈" alt="舞蹈" class="w-10 h-10 category-icon">
+                        <span class="text-gray-800 tab-text">舞蹈</span>
+                    </button>
+                    <button data-category="繪畫" class="tab-button bg-white rounded-lg p-4 flex flex-col items-center justify-center space-y-2 shadow hover:bg-blue-500 hover:text-white">
+                        <img src="https://placehold.co/40x40/E2E8F0/1A202C?text=繪畫" alt="繪畫" class="w-10 h-10 category-icon">
+                        <span class="text-gray-800 tab-text">繪畫</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Coach list container, now a single-column layout -->
+            <div id="coach-list" class="grid grid-cols-1 gap-6">
+                <!-- Coach cards will be dynamically generated by JavaScript -->
             </div>
         </section>
 
-        <!-- 日曆與預約區塊 -->
-        <section class="bg-white p-6 md:p-10 rounded-2xl shadow-xl">
-            <div id="firebase-error-message" class="bg-red-100 text-red-700 border border-red-300 p-4 rounded-lg mb-4 text-center hidden">
-                <p class="font-bold">錯誤：無法連接到 Firebase。</p>
-                <p>請檢查您的 Firebase 專案設定，並確保已啟用匿名登入。</p>
+        <!-- Right-side sidebar for user actions -->
+        <aside class="md:w-72 space-y-6">
+            <div class="sidebar p-6 space-y-4">
+                <h3 class="text-xl font-semibold text-gray-800">用戶功能</h3>
+                <button class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg hover:bg-blue-600 transition-colors shadow-md">
+                    查詢/取消預約
+                </button>
+                <button class="w-full bg-gray-200 text-gray-800 font-bold py-3 rounded-lg hover:bg-gray-300 transition-colors shadow-md">
+                    教練專區
+                </button>
             </div>
-            
-            <div class="flex justify-between items-center mb-6">
-                <button id="prev-month" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">&lt;</button>
-                <h2 id="current-month-year" class="text-2xl font-bold text-gray-800"></h2>
-                <button id="next-month" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">&gt;</button>
-            </div>
-            
-            <div class="flex justify-center items-center mb-6 gap-4">
-                <label for="year-select" class="text-gray-600">選擇年份:</label>
-                <select id="year-select" class="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
-            </div>
+        </aside>
 
-            <div id="calendar-grid-container">
-                <div class="calendar-grid grid grid-cols-7 gap-2 text-center">
-                    <!-- 星期幾的標頭會由 JavaScript 動態生成，以確保排版正確 -->
-                </div>
-            </div>
-        </section>
-        
-        <!-- 使用者自助查詢與刪除區塊 -->
-        <section id="user-manage-section" class="bg-white p-6 md:p-10 rounded-2xl shadow-xl">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">查詢及刪除我的預約</h2>
-            <div class="space-y-4">
-                <div class="flex flex-col">
-                    <label for="user-manage-name" class="text-gray-700 mb-1">姓名：</label>
-                    <input type="text" id="user-manage-name" class="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div class="flex flex-col">
-                    <label for="user-manage-phone" class="text-gray-700 mb-1">電話：</label>
-                    <input type="tel" id="user-manage-phone" class="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-            </div>
-            <button id="search-my-bookings-btn" class="mt-6 w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition-colors">查詢我的預約</button>
-            <div id="user-bookings-results" class="mt-6 space-y-3">
-                <!-- 查詢結果會顯示在這裡 -->
-            </div>
-        </section>
-
-        <!-- 管理員功能區塊 -->
-        <section id="admin-section" class="bg-white p-6 md:p-10 rounded-2xl shadow-xl">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">管理員功能</h2>
-            <div id="admin-login-form">
-                <p class="text-gray-600 mb-4">請輸入您的教練姓名和電話來進行管理員身分驗證。</p>
-                <div class="space-y-4">
-                    <div class="flex flex-col">
-                        <label for="admin-name" class="text-gray-700 mb-1">姓名：</label>
-                        <input type="text" id="admin-name" class="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="admin-phone" class="text-gray-700 mb-1">電話：</label>
-                        <input type="tel" id="admin-phone" class="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                </div>
-                <button id="admin-login-btn" class="mt-6 w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg transition-colors">管理員登入</button>
-            </div>
-            
-            <div id="admin-options" class="admin-options mt-6 space-y-4 hidden">
-                <button id="search-booking-btn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg transition-colors">查詢所有預約及刪除</button>
-                <button id="toggle-leave-mode-btn" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-lg transition-colors">切換請假模式</button>
-                <button id="view-deletion-history-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 rounded-lg transition-colors">查看刪除紀錄</button>
-            </div>
-            
-            <div id="search-results" class="mt-6 space-y-3">
-                <!-- 查詢結果會顯示在這裡 -->
-            </div>
-        </section>
-        
-        <!-- 使用者資訊輸入彈窗 -->
-        <div id="user-info-modal" class="modal fixed inset-0 flex items-center justify-center p-4 modal-background z-50 hidden">
-            <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md relative modal-content">
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">請輸入您的聯絡資訊</h3>
-                <div class="space-y-4">
-                    <div class="flex flex-col">
-                        <label for="user-name" class="text-gray-700 mb-1">姓名：</label>
-                        <input type="text" id="user-name" required class="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="user-phone" class="text-gray-700 mb-1">電話：</label>
-                        <input type="tel" id="user-phone" required class="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-                    </div>
-                </div>
-                <button id="submit-user-info" class="mt-6 w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg transition-colors">確認</button>
-            </div>
-        </div>
-
-        <!-- 預約時段選擇彈窗 -->
-        <div id="booking-modal" class="modal fixed inset-0 flex items-center justify-center p-4 modal-background z-50 hidden">
-            <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md relative modal-content">
-                <span id="close-booking-modal" class="close-button absolute top-4 right-6 text-gray-400 hover:text-gray-800 text-3xl font-bold transition-colors cursor-pointer">&times;</span>
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">預約 <span id="modal-date" class="text-blue-500"></span> 的課程</h3>
-                <div id="time-slots" class="grid grid-cols-2 gap-3 mt-6">
-                </div>
-                <button id="confirm-booking" class="mt-6 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-lg transition-colors" disabled>確認預約</button>
-            </div>
-        </div>
-
-        <!-- 教練預約排程彈窗 -->
-        <div id="admin-schedule-modal" class="modal fixed inset-0 flex items-center justify-center p-4 modal-background z-50 hidden">
-            <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-lg relative modal-content">
-                <span id="close-admin-schedule-modal" class="close-button absolute top-4 right-6 text-gray-400 hover:text-gray-800 text-3xl font-bold transition-colors cursor-pointer">&times;</span>
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">教練排程：<span id="admin-modal-date" class="text-blue-500"></span></h3>
-                <div id="admin-schedule-list" class="mt-6 space-y-4 max-h-96 overflow-y-auto">
-                    <!-- 排程內容會動態生成在這裡 -->
-                </div>
-            </div>
-        </div>
-        
-        <!-- 刪除紀錄彈窗 -->
-        <div id="deletion-history-modal" class="modal fixed inset-0 flex items-center justify-center p-4 modal-background z-50 hidden">
-            <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-lg relative modal-content">
-                <span id="close-deletion-history-modal" class="close-button absolute top-4 right-6 text-gray-400 hover:text-gray-800 text-3xl font-bold transition-colors cursor-pointer">&times;</span>
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">預約刪除紀錄</h3>
-                <div id="deletion-history-list" class="mt-6 space-y-4 max-h-96 overflow-y-auto">
-                    <!-- 刪除紀錄內容會動態生成在這裡 -->
-                </div>
-            </div>
-        </div>
-
-        <!-- 管理員通知彈窗 (新增) -->
-        <div id="admin-alert-modal" class="modal fixed inset-0 flex items-center justify-center p-4 modal-background z-50 hidden">
-            <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-lg relative modal-content">
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">課程變更通知</h3>
-                <p class="text-gray-600 mb-4">您有未讀的課程變動記錄，請務必檢視。</p>
-                <div id="admin-alerts-list" class="mt-6 space-y-4 max-h-96 overflow-y-auto">
-                    <!-- 變更記錄會動態生成在這裡 -->
-                </div>
-                <button id="dismiss-alerts-btn" class="mt-6 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-lg transition-colors">我知道了</button>
-            </div>
-        </div>
-
-
-        <!-- 自訂訊息彈窗 -->
-        <div id="message-modal" class="modal fixed inset-0 flex items-center justify-center p-4 modal-background z-50 hidden">
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm relative modal-content">
-                <div id="message-modal-header" class="px-6 py-4 rounded-t-2xl text-white flex justify-between items-center">
-                    <h3 id="message-modal-title" class="text-xl font-bold"></h3>
-                    <span id="close-message-modal" class="text-3xl font-bold transition-colors cursor-pointer">&times;</span>
-                </div>
-                <div class="p-6">
-                    <p id="message-modal-body" class="text-gray-700 text-center text-lg mb-6"></p>
-                    <div id="message-modal-buttons" class="flex justify-center gap-4">
-                        <button id="message-modal-close-btn" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors">關閉</button>
-                    </div>
-                </div>
-            </div>
-        </div>
     </main>
+    
+    <script>
+        // Dummy data for coaches to demonstrate dynamic rendering
+        // In a real application, this data would come from Firestore or a backend API
+        const allCoaches = [
+            { id: 'coach1', name: '馬邦德', category: '游泳', imageUrl: 'img1.jpg', rating: 4.8, bio: '擁有十年教學經驗的專業游泳教練，擅長兒童與成人初級教學，以耐心和鼓勵的方式，幫助學生建立信心，掌握正確的游泳技巧。' },
+            { id: 'coach2', name: '李教練', category: '直排輪', imageUrl: 'https://placehold.co/120x120/E2E8F0/1A202C?text=李教練', rating: 4.5, bio: '國際直排輪協會認證教練，專精於競速與花式直排輪，教學風格活潑有趣，能快速提升學生的平衡感與技術。' },
+            { id: 'coach3', name: '陳老師', category: '鋼琴', imageUrl: 'https://placehold.co/120x120/E2E8F0/1A202C?text=陳老師', rating: 5.0, bio: '畢業於音樂學院，具備豐富的鋼琴教學經驗。從古典到流行，能根據學生興趣客製化課程，培養學生的音樂素養與演奏能力。' },
+            { id: 'coach4', name: '張老師', category: '舞蹈', imageUrl: 'https://placehold.co/120x120/E2E8F0/1A202C?text=張老師', rating: 4.7, bio: '國家級舞蹈教師，擅長多種舞風，包括街舞、現代舞及兒童律動。教學充滿熱情，幫助學生找到屬於自己的節奏與自信。' },
+            { id: 'coach5', name: '林老師', category: '繪畫', imageUrl: 'https://placehold.co/120x120/E2E8F0/1A202C?text=林老師', rating: 4.9, bio: '專職美術家，曾多次舉辦個人畫展。教學著重於啟發學生的創造力，從基礎素描到多元媒材，引導學生自由揮灑色彩。' },
+            { id: 'coach6', name: '黃四郎', category: '游泳', imageUrl: 'img2.jpg', rating: 4.6, bio: '具備B級游泳教練證，教學經驗豐富，擅長蛙式、自由式等泳姿的精進訓練，能有效改善學生的技術細節，提升游泳效率。' },
+            { id: 'coach7', name: '周教練', category: '直排輪', imageUrl: 'https://placehold.co/120x120/E2E8F0/1A202C?text=周教練', rating: 4.4, bio: '台灣直排輪聯盟認證教練，致力於推廣直排輪運動。教學以安全為首，從基本動作到進階花式，讓學生在享受樂趣的同時安全學習。' },
+        ];
 
-    <!-- 腳本邏輯都已內嵌在這裡 -->
-    <script type="module">
-        // ----------------------------------------------------------------
-        // Firebase 設定
-        // ----------------------------------------------------------------
-        // 使用 Firebase v9 模組化語法，確保語法一致性
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs, addDoc, deleteDoc, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        // UI elements selection
+        const categoryTabs = document.getElementById('category-tabs');
+        const coachList = document.getElementById('coach-list');
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDrevpcWddVfJRqRcyxqMR70af_GAIXlFQ",
-            authDomain: "coach-reservation.firebaseapp.com",
-            projectId: "coach-reservation",
-            storageBucket: "coach-reservation.firebasestorage.app",
-            messagingSenderId: "580815027044",
-            appId: "1:580815027044:web:3fc66b1fd0d797d7f31871"
-        };
-        
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        
-        // ----------------------------------------------------------------
-        // 網頁邏輯
-        // ----------------------------------------------------------------
-        document.addEventListener('DOMContentLoaded', () => {
-            const calendarGrid = document.querySelector('.calendar-grid');
-            const currentMonthYear = document.getElementById('current-month-year');
-            const prevMonthBtn = document.getElementById('prev-month');
-            const nextMonthBtn = document.getElementById('next-month');
-            const yearSelect = document.getElementById('year-select');
-            
-            const userInfoModal = document.getElementById('user-info-modal');
-            const userNameInput = document.getElementById('user-name');
-            const userPhoneInput = document.getElementById('user-phone');
-            const submitUserInfoBtn = document.getElementById('submit-user-info');
-            
-            const bookingModal = document.getElementById('booking-modal');
-            const closeBookingModalBtn = document.getElementById('close-booking-modal');
-            const modalDate = document.getElementById('modal-date');
-            const timeSlotsContainer = document.getElementById('time-slots');
-            const confirmBookingBtn = document.getElementById('confirm-booking');
-            
-            const firebaseErrorDiv = document.getElementById('firebase-error-message');
-            
-            const adminLoginBtn = document.getElementById('admin-login-btn');
-            const adminNameInput = document.getElementById('admin-name');
-            const adminPhoneInput = document.getElementById('admin-phone');
-            const adminLoginForm = document.getElementById('admin-login-form');
-            const adminOptionsDiv = document.getElementById('admin-options');
-            
-            const searchBookingBtn = document.getElementById('search-booking-btn');
-            const toggleLeaveModeBtn = document.getElementById('toggle-leave-mode-btn');
-            const searchResultsDiv = document.getElementById('search-results');
+        // Function to render coach cards based on a category
+        function renderCoaches(category) {
+            coachList.innerHTML = ''; // Clear previous coaches
+            const filteredCoaches = category === '' ? allCoaches : allCoaches.filter(coach => coach.category === category);
 
-            const adminScheduleModal = document.getElementById('admin-schedule-modal');
-            const closeAdminScheduleModalBtn = document.getElementById('close-admin-schedule-modal');
-            const adminModalDate = document.getElementById('admin-modal-date');
-            const adminScheduleList = document.getElementById('admin-schedule-list');
-
-            const deletionHistoryModal = document.getElementById('deletion-history-modal');
-            const closeDeletionHistoryModalBtn = document.getElementById('close-deletion-history-modal');
-            const deletionHistoryList = document.getElementById('deletion-history-list');
-            const viewDeletionHistoryBtn = document.getElementById('view-deletion-history-btn');
-
-            // 管理員通知彈窗相關元素
-            const adminAlertModal = document.getElementById('admin-alert-modal');
-            const adminAlertsList = document.getElementById('admin-alerts-list');
-            const dismissAlertsBtn = document.getElementById('dismiss-alerts-btn');
-
-            // 自訂訊息彈窗相關元素
-            const messageModal = document.getElementById('message-modal');
-            const messageModalHeader = document.getElementById('message-modal-header');
-            const messageModalTitle = document.getElementById('message-modal-title');
-            const messageModalBody = document.getElementById('message-modal-body');
-            const messageModalButtons = document.getElementById('message-modal-buttons');
-            const closeMessageModalBtn = document.getElementById('close-message-modal');
-
-            // 使用者自助查詢相關元素
-            const userManageNameInput = document.getElementById('user-manage-name');
-            const userManagePhoneInput = document.getElementById('user-manage-phone');
-            const searchMyBookingsBtn = document.getElementById('search-my-bookings-btn');
-            const userBookingsResultsDiv = document.getElementById('user-bookings-results');
-
-
-            let currentMonth = new Date().getMonth();
-            let currentYear = new Date().getFullYear();
-            let selectedDate = null;
-            let selectedTime = null;
-            
-            const MAX_CAPACITY = 4;
-            const ALL_TIME_SLOTS = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'];
-            
-            const COACH_NAME = '仁';
-            const COACH_PHONE = '0970610005';
-            
-            let userName = '';
-            let userPhone = '';
-            
-            let isAdmin = false;
-            let isLeaveMode = false;
-
-            // 顯示自訂訊息彈窗的函數
-            function showMessageModal(title, message, isSuccess = true, onConfirm = null, isConfirm = false) {
-                // 重設樣式和內容
-                messageModalHeader.className = '';
-                messageModalHeader.classList.add('px-6', 'py-4', 'rounded-t-2xl', 'text-white', 'flex', 'justify-between', 'items-center');
-                messageModalTitle.textContent = title;
-                messageModalBody.textContent = message;
-                messageModalButtons.innerHTML = ''; // 清空按鈕
-
-                if (isSuccess) {
-                    messageModalHeader.classList.add('bg-green-500');
-                    closeMessageModalBtn.classList.add('hover:text-green-200');
-                } else {
-                    messageModalHeader.classList.add('bg-red-500');
-                    closeMessageModalBtn.classList.add('hover:text-red-200');
-                }
-
-                if (isConfirm) {
-                    // 帶有確認功能的彈窗
-                    const confirmBtn = document.createElement('button');
-                    confirmBtn.classList.add('flex-1', 'bg-red-500', 'hover:bg-red-600', 'text-white', 'font-bold', 'py-3', 'px-6', 'rounded-lg', 'transition-colors');
-                    confirmBtn.textContent = '確定';
-                    confirmBtn.addEventListener('click', () => {
-                        onConfirm();
-                        hideMessageModal();
-                    });
-
-                    const cancelBtn = document.createElement('button');
-                    cancelBtn.classList.add('flex-1', 'bg-gray-500', 'hover:bg-gray-600', 'text-white', 'font-bold', 'py-3', 'px-6', 'rounded-lg', 'transition-colors');
-                    cancelBtn.textContent = '取消';
-                    cancelBtn.addEventListener('click', () => hideMessageModal());
-                    
-                    messageModalButtons.appendChild(cancelBtn);
-                    messageModalButtons.appendChild(confirmBtn);
-
-                } else {
-                    // 一般訊息彈窗
-                    const closeBtn = document.createElement('button');
-                    closeBtn.classList.add('flex-1', 'bg-gray-500', 'hover:bg-gray-600', 'text-white', 'font-bold', 'py-3', 'px-6', 'rounded-lg', 'transition-colors');
-                    closeBtn.textContent = '關閉';
-                    closeBtn.addEventListener('click', () => hideMessageModal());
-                    messageModalButtons.appendChild(closeBtn);
-                }
-
-                messageModal.classList.remove('hidden');
-                messageModal.classList.add('flex');
+            if (filteredCoaches.length === 0) {
+                coachList.innerHTML = '<div class="col-span-full text-center text-gray-500 py-12">此類別目前沒有教練。</div>';
+                return;
             }
 
-            // 隱藏自訂訊息彈窗的函數
-            function hideMessageModal() {
-                messageModal.classList.remove('flex');
-                messageModal.classList.add('hidden');
-            }
-
-            // 關閉自訂訊息彈窗按鈕
-            closeMessageModalBtn.addEventListener('click', () => hideMessageModal());
-            
-            // 點擊背景關閉彈窗
-            window.onclick = (event) => {
-                if (event.target === bookingModal) {
-                    bookingModal.classList.remove('flex');
-                    bookingModal.classList.add('hidden');
-                }
-                if (event.target === adminScheduleModal) {
-                    adminScheduleModal.classList.remove('flex');
-                    adminScheduleModal.classList.add('hidden');
-                }
-                if (event.target === userInfoModal) {
-                    // 點擊背景不關閉使用者資訊彈窗
-                }
-                if (event.target === messageModal) {
-                    hideMessageModal();
-                }
-                if (event.target === deletionHistoryModal) {
-                    deletionHistoryModal.classList.remove('flex');
-                    deletionHistoryModal.classList.add('hidden');
-                }
-            };
-
-            signInAnonymously(auth).then(() => {
-                console.log("匿名登入成功！");
-                if (!userName || !userPhone) {
-                    userInfoModal.classList.remove('hidden');
-                    userInfoModal.classList.add('flex');
-                }
-                renderCalendar();
-            }).catch((error) => {
-                console.error("匿名登入失敗:", error);
-                firebaseErrorDiv.style.display = 'block';
-            });
-
-            submitUserInfoBtn.addEventListener('click', () => {
-                const name = userNameInput.value.trim();
-                const phone = userPhoneInput.value.trim();
-                
-                if (name && phone) {
-                    userName = name;
-                    userPhone = phone;
-                    userInfoModal.classList.remove('flex');
-                    userInfoModal.classList.add('hidden');
-                } else {
-                    showMessageModal('錯誤', '請完整填寫姓名和電話。', false);
-                }
-            });
-
-            function initYearSelect() {
-                const currentYear = new Date().getFullYear();
-                yearSelect.innerHTML = '';
-                for (let i = currentYear; i <= 2050; i++) {
-                    const option = document.createElement('option');
-                    option.value = i;
-                    option.textContent = i;
-                    if (i === currentYear) {
-                        option.selected = true;
-                    }
-                    yearSelect.appendChild(option);
-                }
-            }
-
-            async function renderCalendar() {
-                calendarGrid.innerHTML = '';
-                const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-                weekdays.forEach(dayText => {
-                    const header = document.createElement('div');
-                    header.classList.add('weekday', 'font-bold', 'text-blue-600', 'py-2');
-                    header.textContent = dayText;
-                    calendarGrid.appendChild(header);
-                });
-
-                const date = new Date(currentYear, currentMonth, 1);
-                const firstDayOfMonth = date.getDay();
-                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-                
-                currentMonthYear.textContent = `${currentYear} 年 ${currentMonth + 1} 月`;
-                yearSelect.value = currentYear;
-
-                const formattedMonth = String(currentMonth + 1).padStart(2, '0');
-                
-                try {
-                    const schedulesCollection = collection(db, 'schedules');
-                    const q = query(
-                        schedulesCollection,
-                        where('date', '>=', `${currentYear}-${formattedMonth}-01`),
-                        where('date', '<=', `${currentYear}-${formattedMonth}-${daysInMonth}`)
-                    );
-                    const querySnapshot = await getDocs(q);
-                    
-                    const bookedSlotCounts = {};
-                    querySnapshot.forEach(doc => {
-                        const slot = doc.data();
-                        const slotKey = `${slot.date}-${slot.time}`;
-                        bookedSlotCounts[slotKey] = (bookedSlotCounts[slotKey] || 0) + 1;
-                    });
-                    
-                    const coachLeaveCollection = collection(db, 'coachLeave');
-                    const leaveSnapshot = await getDocs(coachLeaveCollection);
-                    const leaveDates = new Set();
-                    leaveSnapshot.forEach(doc => {
-                        leaveDates.add(doc.id);
-                    });
-                    
-                    for (let i = 0; i < firstDayOfMonth; i++) {
-                        const emptyDay = document.createElement('div');
-                        emptyDay.classList.add('day', 'empty-day');
-                        calendarGrid.appendChild(emptyDay);
-                    }
-
-                    for (let i = 1; i <= daysInMonth; i++) {
-                        const day = document.createElement('div');
-                        day.textContent = i;
-                        day.classList.add('day');
-                        
-                        const today = new Date();
-                        const formattedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                        const currentDayDate = new Date(formattedDate);
-                        
-                        const isLeaveDay = leaveDates.has(formattedDate);
-                        const isPastDay = currentDayDate < today.setHours(0,0,0,0);
-                        const isToday = i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear();
-                        
-                        const hasAvailableSlot = ALL_TIME_SLOTS.some(time => {
-                            const slotKey = `${formattedDate}-${time}`;
-                            return (bookedSlotCounts[slotKey] || 0) < MAX_CAPACITY;
-                        });
-
-                        if (isAdmin && isLeaveMode) {
-                            if (isLeaveDay) {
-                                day.classList.add('coach-leave');
-                                day.addEventListener('click', () => toggleLeave(formattedDate, false));
-                            } else {
-                                day.addEventListener('click', () => toggleLeave(formattedDate, true));
-                            }
-                        } else if (isAdmin) {
-                            if (isPastDay) {
-                                day.classList.add('unavailable');
-                            } else {
-                                day.classList.add('has-slots');
-                                day.addEventListener('click', () => showAdminScheduleModal(formattedDate));
-                            }
-                        } else {
-                            if (isPastDay || isLeaveDay) {
-                                day.classList.add('unavailable');
-                                if (isLeaveDay) {
-                                    day.classList.add('coach-leave');
-                                }
-                            } else if (hasAvailableSlot) {
-                                day.classList.add('has-slots');
-                                day.addEventListener('click', () => {
-                                    if (!userName || !userPhone) {
-                                        userInfoModal.classList.remove('hidden');
-                                        userInfoModal.classList.add('flex');
-                                    } else {
-                                        showBookingModal(formattedDate, bookedSlotCounts);
-                                    }
-                                });
-                            } else {
-                                day.classList.add('unavailable');
-                            }
-                        }
-                        
-                        if (isToday) {
-                            day.classList.add('today');
-                        }
-                        
-                        calendarGrid.appendChild(day);
-                    }
-                } catch (error) {
-                    console.error("渲染日曆失敗:", error);
-                    showMessageModal('錯誤', '載入預約資訊失敗，請檢查網路連線或稍後再試。', false);
-                }
-            }
-            
-            timeSlotsContainer.addEventListener('click', (event) => {
-                const clickedSlot = event.target.closest('.time-slot');
-                if (clickedSlot && !clickedSlot.classList.contains('full')) {
-                    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
-                    clickedSlot.classList.add('selected');
-                    selectedTime = clickedSlot.getAttribute('data-time');
-                    confirmBookingBtn.disabled = false;
-                }
-            });
-
-            function showBookingModal(date, bookedSlotCounts) {
-                bookingModal.classList.remove('hidden');
-                bookingModal.classList.add('flex');
-                modalDate.textContent = date;
-                timeSlotsContainer.innerHTML = '';
-                confirmBookingBtn.disabled = true;
-                selectedDate = date;
-                selectedTime = null;
-
-                ALL_TIME_SLOTS.forEach(slotTime => {
-                    const slotKey = `${date}-${slotTime}`;
-                    const currentBookings = bookedSlotCounts[slotKey] || 0;
-                    const isFull = currentBookings >= MAX_CAPACITY;
-                    
-                    const timeSlot = document.createElement('div');
-                    timeSlot.classList.add('time-slot');
-                    timeSlot.setAttribute('data-time', slotTime);
-                    timeSlot.textContent = `${slotTime} (${currentBookings}/${MAX_CAPACITY})`;
-                    
-                    if (isFull) {
-                        timeSlot.classList.add('full');
-                    }
-                    timeSlotsContainer.appendChild(timeSlot);
-                });
-            }
-            
-            confirmBookingBtn.addEventListener('click', async () => {
-                if (selectedTime && userName && userPhone) {
-                    const schedulesCollection = collection(db, 'schedules');
-                    
-                    // 檢查是否已達預約上限
-                    const qCapacity = query(
-                        schedulesCollection,
-                        where('date', '==', selectedDate),
-                        where('time', '==', selectedTime)
-                    );
-                    const querySnapshotCapacity = await getDocs(qCapacity);
-                    if (querySnapshotCapacity.size >= MAX_CAPACITY) {
-                        showMessageModal('錯誤', '抱歉，此時段已被預約額滿，請選擇其他時段。', false);
-                        bookingModal.classList.remove('flex');
-                        bookingModal.classList.add('hidden');
-                        renderCalendar();
-                        return;
-                    }
-
-                    // 檢查是否重複預約 (新增的邏輯)
-                    const qDuplicate = query(
-                        schedulesCollection,
-                        where('date', '==', selectedDate),
-                        where('time', '==', selectedTime),
-                        where('userName', '==', userName),
-                        where('userPhone', '==', userPhone)
-                    );
-                    const querySnapshotDuplicate = await getDocs(qDuplicate);
-                    if (querySnapshotDuplicate.size > 0) {
-                        showMessageModal('錯誤', '您已預約過此時段，無法重複預約。', false);
-                        bookingModal.classList.remove('flex');
-                        bookingModal.classList.add('hidden');
-                        return;
-                    }
-
-                    try {
-                        await addDoc(schedulesCollection, {
-                            date: selectedDate,
-                            time: selectedTime,
-                            userName: userName,
-                            userPhone: userPhone
-                        });
-                        
-                        showMessageModal('預約成功', `恭喜您，${userName}！已成功預約 ${selectedDate} ${selectedTime} 的課程。`, true);
-                        bookingModal.classList.remove('flex');
-                        bookingModal.classList.add('hidden');
-                        renderCalendar();
-                    } catch (error) {
-                        console.error("預約失敗:", error);
-                        showMessageModal('錯誤', '預約失敗，請稍後再試。', false);
-                    }
-                } else {
-                    showMessageModal('錯誤', '請先填寫您的姓名和電話，或選擇一個時段。', false);
-                    bookingModal.classList.remove('flex');
-                    bookingModal.classList.add('hidden');
-                    userInfoModal.classList.remove('hidden');
-                    userInfoModal.classList.add('flex');
-                }
-            });
-
-            prevMonthBtn.addEventListener('click', () => {
-                currentMonth--;
-                if (currentMonth < 0) {
-                    currentMonth = 11;
-                    currentYear--;
-                }
-                renderCalendar();
-            });
-
-            nextMonthBtn.addEventListener('click', () => {
-                currentMonth++;
-                if (currentMonth > 11) {
-                    currentMonth = 0;
-                    currentYear++;
-                }
-                renderCalendar();
-            });
-
-            yearSelect.addEventListener('change', (e) => {
-                currentYear = parseInt(e.target.value);
-                renderCalendar();
-            });
-            
-            closeBookingModalBtn.addEventListener('click', () => {
-                bookingModal.classList.remove('flex');
-                bookingModal.classList.add('hidden');
-            });
-
-            closeAdminScheduleModalBtn.addEventListener('click', () => {
-                adminScheduleModal.classList.remove('flex');
-                adminScheduleModal.classList.add('hidden');
-            });
-
-            closeDeletionHistoryModalBtn.addEventListener('click', () => {
-                deletionHistoryModal.classList.remove('flex');
-                deletionHistoryModal.classList.add('hidden');
-            });
-            
-            // ----------------------------------------------------------------
-            // 使用者自助查詢與刪除
-            // ----------------------------------------------------------------
-            searchMyBookingsBtn.addEventListener('click', searchUserBookings);
-            
-            async function searchUserBookings() {
-                const name = userManageNameInput.value.trim();
-                const phone = userManagePhoneInput.value.trim();
-
-                if (!name || !phone) {
-                    showMessageModal('錯誤', '請完整輸入您的姓名和電話。', false);
-                    return;
-                }
-
-                userBookingsResultsDiv.innerHTML = '<p class="text-gray-500 text-center">正在查詢您的預約...</p>';
-                
-                try {
-                    const schedulesCollection = collection(db, 'schedules');
-                    const q = query(
-                        schedulesCollection,
-                        where('userName', '==', name),
-                        where('userPhone', '==', phone)
-                    );
-                    const querySnapshot = await getDocs(q);
-
-                    if (querySnapshot.empty) {
-                        userBookingsResultsDiv.innerHTML = '<p class="text-gray-500 text-center">沒有找到任何預約記錄。</p>';
-                        return;
-                    }
-                    
-                    userBookingsResultsDiv.innerHTML = '';
-                    querySnapshot.forEach(doc => {
-                        const booking = doc.data();
-                        const resultDiv = document.createElement('div');
-                        resultDiv.classList.add('flex', 'items-center', 'justify-between', 'bg-gray-100', 'p-4', 'rounded-lg', 'shadow-sm');
-                        resultDiv.innerHTML = `
-                            <div>
-                                <p class="font-semibold text-gray-800">${booking.date} ${booking.time}</p>
-                            </div>
-                            <button class="user-delete-button bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-sm" data-id="${doc.id}" data-date="${booking.date}" data-time="${booking.time}" data-name="${booking.userName}" data-phone="${booking.userPhone}">刪除</button>
-                        `;
-                        userBookingsResultsDiv.appendChild(resultDiv);
-                    });
-
-                    document.querySelectorAll('.user-delete-button').forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            const docId = e.target.getAttribute('data-id');
-                            const bookingData = {
-                                date: e.target.getAttribute('data-date'),
-                                time: e.target.getAttribute('data-time'),
-                                userName: e.target.getAttribute('data-name'),
-                                userPhone: e.target.getAttribute('data-phone'),
-                            };
-                            showMessageModal(
-                                '確認刪除', 
-                                `確定要刪除 ${bookingData.date} ${bookingData.time} 的預約嗎？`, 
-                                false, 
-                                () => deleteBooking(docId, bookingData, '使用者'), // 傳入'使用者'作為刪除者
-                                true
-                            );
-                        });
-                    });
-
-                } catch (error) {
-                    console.error("查詢預約失敗:", error);
-                    userBookingsResultsDiv.innerHTML = '<p class="text-red-500 text-center">查詢預約時發生錯誤，請稍後再試。</p>';
-                }
-            }
-            
-            // ----------------------------------------------------------------
-            // 管理員功能邏輯
-            // ----------------------------------------------------------------
-            adminLoginBtn.addEventListener('click', async () => {
-                const name = adminNameInput.value.trim();
-                const phone = adminPhoneInput.value.trim();
-
-                if (name === COACH_NAME && phone === COACH_PHONE) {
-                    showMessageModal('登入成功', '教練登入成功！', true);
-                    isAdmin = true;
-                    adminLoginForm.classList.add('hidden');
-                    adminOptionsDiv.classList.remove('hidden');
-                    searchResultsDiv.innerHTML = '';
-                    renderCalendar();
-                    await checkAdminAlerts(); // 登入後立即檢查通知
-                } else {
-                    showMessageModal('登入失敗', '教練姓名或電話不正確。', false);
-                    isAdmin = false;
-                }
-            });
-
-            // 檢查管理員通知的函數
-            async function checkAdminAlerts() {
-                try {
-                    const adminAlertsCollection = collection(db, 'adminAlerts');
-                    const q = query(adminAlertsCollection, where('isRead', '==', false));
-                    const querySnapshot = await getDocs(q);
-
-                    if (!querySnapshot.empty) {
-                        adminAlertModal.classList.remove('hidden');
-                        adminAlertModal.classList.add('flex');
-                        adminAlertsList.innerHTML = ''; // 清空列表
-
-                        const alerts = [];
-                        querySnapshot.forEach(doc => {
-                            alerts.push({ id: doc.id, ...doc.data() });
-                        });
-                        
-                        alerts.sort((a, b) => new Date(a.deletedAt) - new Date(b.deletedAt));
-
-                        alerts.forEach(alert => {
-                            const alertItem = document.createElement('div');
-                            alertItem.classList.add('bg-gray-100', 'p-4', 'rounded-lg', 'shadow-sm');
-                            alertItem.innerHTML = `
-                                <p class="font-semibold text-gray-800">日期: ${alert.date} ${alert.time}</p>
-                                <p class="text-sm text-gray-600">預約人: ${alert.userName} (${alert.userPhone})</p>
-                                <p class="text-xs text-gray-400 mt-1">
-                                    刪除者: ${alert.deletedBy} | 
-                                    刪除時間: ${new Date(alert.deletedAt).toLocaleString('zh-TW', {
-                                        year: 'numeric',
-                                        month: 'numeric',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                        second: '2-digit'
-                                    })}
-                                </p>
-                            `;
-                            adminAlertsList.appendChild(alertItem);
-                        });
-
-                        // 設置清除按鈕的事件監聽器
-                        dismissAlertsBtn.onclick = async () => {
-                            // 將所有未讀通知標記為已讀
-                            for (const alert of alerts) {
-                                const alertDocRef = doc(db, 'adminAlerts', alert.id);
-                                await updateDoc(alertDocRef, { isRead: true });
-                            }
-                            adminAlertModal.classList.remove('flex');
-                            adminAlertModal.classList.add('hidden');
-                        };
-
-                    } else {
-                        // 沒有未讀通知，不做任何事
-                    }
-                } catch (error) {
-                    console.error("檢查管理員通知失敗:", error);
-                    // 即使檢查失敗，也不影響其他功能
-                }
-            }
-
-
-            searchBookingBtn.addEventListener('click', searchBookings);
-            viewDeletionHistoryBtn.addEventListener('click', showDeletionHistory);
-            
-            async function searchBookings() {
-                if (!isAdmin) {
-                    showMessageModal('權限不足', '請先以教練身份登入。', false);
-                    return;
-                }
-                
-                isLeaveMode = false;
-                toggleLeaveModeBtn.textContent = '切換請假模式';
-                searchResultsDiv.innerHTML = '<p class="text-gray-500 text-center">正在查詢所有預約中...</p>';
-                
-                try {
-                    const schedulesCollection = collection(db, 'schedules');
-                    const querySnapshot = await getDocs(schedulesCollection);
-                    
-                    const results = [];
-                    querySnapshot.forEach(doc => {
-                        const booking = doc.data();
-                        results.push({ id: doc.id, ...booking });
-                    });
-                    
-                    results.sort((a, b) => {
-                        if (a.date === b.date) {
-                            return a.time.localeCompare(b.time);
-                        }
-                        return a.date.localeCompare(b.date);
-                    });
-                    
-                    displaySearchResults(results);
-                } catch (error) {
-                    console.error("查詢所有預約失敗:", error);
-                    searchResultsDiv.innerHTML = '<p class="text-red-500 text-center">查詢預約時發生錯誤，請稍後再試。</p>';
-                }
-            }
-
-            function displaySearchResults(results) {
-                searchResultsDiv.innerHTML = '';
-                if (results.length === 0) {
-                    searchResultsDiv.innerHTML = '<p class="text-gray-500 text-center">目前沒有任何預約記錄。</p>';
-                    return;
-                }
-                
-                results.forEach(booking => {
-                    const resultDiv = document.createElement('div');
-                    resultDiv.classList.add('flex', 'items-center', 'justify-between', 'bg-gray-100', 'p-4', 'rounded-lg', 'shadow-sm');
-                    resultDiv.innerHTML = `
-                        <div>
-                            <p class="font-semibold text-gray-800">${booking.date} ${booking.time}</p>
-                            <p class="text-sm text-gray-600">預約人：${booking.userName} (${booking.userPhone})</p>
+            filteredCoaches.forEach(coach => {
+                const card = document.createElement('div');
+                card.className = 'coach-card bg-white p-6 rounded-xl space-y-4 shadow-md';
+                card.innerHTML = `
+                    <div class="flex items-start gap-6">
+                        <div class="coach-image-container">
+                            <img src="${coach.imageUrl}" alt="教練照片">
                         </div>
-                        <button class="delete-button bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-sm" data-id="${booking.id}" data-date="${booking.date}" data-time="${booking.time}" data-name="${booking.userName}" data-phone="${booking.userPhone}">刪除</button>
-                    `;
-                    searchResultsDiv.appendChild(resultDiv);
+                        <div class="flex-1 space-y-2">
+                            <h3 class="text-2xl font-bold text-gray-800">${coach.name}</h3>
+                            <p class="text-gray-600">家長評價: <span class="text-yellow-500">★</span> ${coach.rating}</p>
+                            <p class="text-gray-600 mt-2">${coach.bio}</p>
+                        </div>
+                    </div>
+                `;
+                // Add a click event listener to simulate navigating to the coach's page
+                card.addEventListener('click', () => {
+                    console.log(`點擊了教練: ${coach.name}。準備跳轉到教練詳細頁面...`);
+                    // Here you would add the logic to navigate to a new page or show a modal
+                    // For now, it just logs to the console.
                 });
-                
-                document.querySelectorAll('.delete-button').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const docId = e.target.getAttribute('data-id');
-                        const bookingData = {
-                            date: e.target.getAttribute('data-date'),
-                            time: e.target.getAttribute('data-time'),
-                            userName: e.target.getAttribute('data-name'),
-                            userPhone: e.target.getAttribute('data-phone'),
-                        };
-                        showMessageModal(
-                            '確認刪除', 
-                            '確定要刪除這筆預約嗎？此操作無法復原！', 
-                            false, 
-                            () => deleteBooking(docId, bookingData, '教練'), // 傳入'教練'作為刪除者
-                            true
-                        );
-                    });
-                });
-            }
-            
-            async function deleteBooking(docId, bookingData, deletedBy) {
-                try {
-                    const bookingDocRef = doc(db, 'schedules', docId);
-                    await deleteDoc(bookingDocRef);
-
-                    // 將刪除紀錄寫入 bookingHistory
-                    const bookingHistoryCollection = collection(db, 'bookingHistory');
-                    await addDoc(bookingHistoryCollection, {
-                        ...bookingData,
-                        deletedAt: new Date().toISOString(),
-                        deletedBy: deletedBy
-                    });
-
-                    // 僅當刪除者是使用者時，才新增通知給管理員
-                    if (deletedBy === '使用者') {
-                        const adminAlertsCollection = collection(db, 'adminAlerts');
-                        await addDoc(adminAlertsCollection, {
-                            ...bookingData,
-                            deletedAt: new Date().toISOString(),
-                            deletedBy: deletedBy,
-                            isRead: false
-                        });
-                    }
-
-                    showMessageModal('刪除成功', '預約已成功刪除！', true);
-                    
-                    // 根據是誰刪除的，更新對應的畫面
-                    if (deletedBy === '教練') {
-                        searchBookings();
-                    } else {
-                        searchUserBookings();
-                    }
-                    renderCalendar();
-                } catch (error) {
-                    console.error("刪除預約失敗:", error);
-                    showMessageModal('刪除失敗', '刪除預約失敗，請稍後再試。', false);
-                }
-            }
-            
-            // ----------------------------------------------------------------
-            // 教練請假模式
-            // ----------------------------------------------------------------
-            toggleLeaveModeBtn.addEventListener('click', () => {
-                if (!isAdmin) {
-                    showMessageModal('權限不足', '請先以教練身份登入。', false);
-                    return;
-                }
-                isLeaveMode = !isLeaveMode;
-                toggleLeaveModeBtn.textContent = isLeaveMode ? '離開請假模式' : '切換請假模式';
-                searchResultsDiv.innerHTML = isLeaveMode ? '<p class="text-gray-500 text-center">請點擊日曆上的日期來標記或取消請假。</p>' : '';
-                renderCalendar();
+                coachList.appendChild(card);
             });
-            
-            async function toggleLeave(date, isLeaving) {
-                const coachLeaveCollection = collection(db, 'coachLeave');
-                const docRef = doc(coachLeaveCollection, date);
+        }
+
+        // Event listener for category tabs
+        categoryTabs.addEventListener('click', (e) => {
+            let targetButton = e.target.closest('.tab-button');
+            if (targetButton) {
+                // Remove active class from all buttons
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active');
+                    const img = btn.querySelector('.category-icon');
+                    if (img) {
+                        img.classList.remove('active');
+                    }
+                    btn.querySelector('.tab-text').classList.remove('text-white');
+                    btn.querySelector('.tab-text').classList.add('text-gray-800');
+                });
                 
-                try {
-                    if (isLeaving) {
-                        const schedulesCollection = collection(db, 'schedules');
-                        const q = query(schedulesCollection, where('date', '==', date));
-                        const snapshot = await getDocs(q);
-                        if (!snapshot.empty) {
-                            showMessageModal('錯誤', '該日已有預約，無法請假。請先刪除所有預約後再嘗試。', false);
-                            return;
-                        }
-                        await setDoc(docRef, { date: date });
-                        showMessageModal('請假成功', `${date} 已被標記為請假日。`, true);
-                    } else {
-                        await deleteDoc(docRef);
-                        showMessageModal('請假取消', `${date} 的請假已取消。`, true);
-                    }
-                    renderCalendar();
-                } catch (error) {
-                    console.error("切換請假狀態失敗:", error);
-                    showMessageModal('錯誤', '操作失敗，請稍後再試。', false);
+                // Add active class to the clicked button and update icon/text colors
+                targetButton.classList.add('active');
+                const img = targetButton.querySelector('.category-icon');
+                if (img) {
+                    img.classList.add('active');
                 }
+                targetButton.querySelector('.tab-text').classList.remove('text-gray-800');
+                targetButton.querySelector('.tab-text').classList.add('text-white');
+
+                // Render coaches for the selected category
+                const category = targetButton.dataset.category;
+                renderCoaches(category);
             }
-
-            // ----------------------------------------------------------------
-            // 教練模式下的預約排程查看
-            // ----------------------------------------------------------------
-            async function showAdminScheduleModal(date) {
-                adminScheduleModal.classList.remove('hidden');
-                adminScheduleModal.classList.add('flex');
-                adminModalDate.textContent = date;
-                adminScheduleList.innerHTML = '<p class="text-center text-gray-500">正在載入排程...</p>';
-
-                try {
-                    const schedulesCollection = collection(db, 'schedules');
-                    const q = query(schedulesCollection, where('date', '==', date));
-                    const querySnapshot = await getDocs(q);
-
-                    if (querySnapshot.empty) {
-                        adminScheduleList.innerHTML = '<p class="text-center text-gray-500">本日目前沒有任何預約。</p>';
-                        return;
-                    }
-
-                    adminScheduleList.innerHTML = '';
-                    const bookings = [];
-                    querySnapshot.forEach(doc => {
-                        bookings.push({ id: doc.id, ...doc.data() });
-                    });
-
-                    bookings.sort((a, b) => a.time.localeCompare(b.time));
-
-                    bookings.forEach(booking => {
-                        const bookingItem = document.createElement('div');
-                        bookingItem.classList.add('flex', 'items-center', 'justify-between', 'bg-gray-100', 'p-4', 'rounded-lg', 'shadow-sm');
-                        bookingItem.innerHTML = `
-                            <div>
-                                <p class="font-semibold text-gray-800">${booking.time}</p>
-                                <p class="text-sm text-gray-600">預約人：${booking.userName} (${booking.userPhone})</p>
-                            </div>
-                            <button class="delete-booking-btn bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-sm" data-id="${booking.id}" data-date="${booking.date}" data-time="${booking.time}" data-name="${booking.userName}" data-phone="${booking.userPhone}">刪除</button>
-                        `;
-                        adminScheduleList.appendChild(bookingItem);
-                    });
-
-                    document.querySelectorAll('.delete-booking-btn').forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            const docId = e.target.getAttribute('data-id');
-                            const bookingData = {
-                                date: e.target.getAttribute('data-date'),
-                                time: e.target.getAttribute('data-time'),
-                                userName: e.target.getAttribute('data-name'),
-                                userPhone: e.target.getAttribute('data-phone'),
-                            };
-                            showMessageModal(
-                                '確認刪除', 
-                                '確定要刪除這筆預約嗎？此操作無法復原！', 
-                                false, 
-                                () => deleteBooking(docId, bookingData, '教練'),
-                                true
-                            );
-                        });
-                    });
-
-                } catch (error) {
-                    console.error("載入教練排程失敗:", error);
-                    adminScheduleList.innerHTML = '<p class="text-red-500 text-center">載入排程時發生錯誤。</p>';
-                }
-            }
-
-            // ----------------------------------------------------------------
-            // 查看刪除記錄
-            // ----------------------------------------------------------------
-            async function showDeletionHistory() {
-                deletionHistoryModal.classList.remove('hidden');
-                deletionHistoryModal.classList.add('flex');
-                deletionHistoryList.innerHTML = '<p class="text-center text-gray-500">正在載入刪除記錄...</p>';
-
-                try {
-                    const bookingHistoryCollection = collection(db, 'bookingHistory');
-                    const querySnapshot = await getDocs(bookingHistoryCollection);
-
-                    if (querySnapshot.empty) {
-                        deletionHistoryList.innerHTML = '<p class="text-center text-gray-500">目前沒有任何刪除記錄。</p>';
-                        return;
-                    }
-
-                    const history = [];
-                    querySnapshot.forEach(doc => {
-                        history.push(doc.data());
-                    });
-                    
-                    history.sort((a, b) => new Date(b.deletedAt) - new Date(a.deletedAt));
-
-                    deletionHistoryList.innerHTML = '';
-                    history.forEach(item => {
-                        const historyItem = document.createElement('div');
-                        historyItem.classList.add('bg-gray-100', 'p-4', 'rounded-lg', 'shadow-sm');
-                        historyItem.innerHTML = `
-                            <p class="font-semibold text-gray-800">日期: ${item.date} ${item.time}</p>
-                            <p class="text-sm text-gray-600">預約人: ${item.userName} (${item.userPhone})</p>
-                            <p class="text-xs text-gray-400 mt-1">刪除者: ${item.deletedBy} | 刪除時間: ${new Date(item.deletedAt).toLocaleString('zh-TW')}</p>
-                        `;
-                        deletionHistoryList.appendChild(historyItem);
-                    });
-
-                } catch (error) {
-                    console.error("載入刪除記錄失敗:", error);
-                    deletionHistoryList.innerHTML = '<p class="text-red-500 text-center">載入刪除記錄時發生錯誤。</p>';
-                }
-            }
-
-            initYearSelect();
         });
+        
+        // Initial page load: show the first tab as active and its coaches
+        const firstTab = categoryTabs.querySelector('.tab-button');
+        if (firstTab) {
+            firstTab.classList.add('active');
+            const img = firstTab.querySelector('.category-icon');
+            if (img) {
+                img.classList.add('active');
+            }
+            firstTab.querySelector('.tab-text').classList.remove('text-gray-800');
+            firstTab.querySelector('.tab-text').classList.add('text-white');
+            renderCoaches(firstTab.dataset.category);
+        }
     </script>
 </body>
 </html>
