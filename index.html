@@ -13,9 +13,9 @@
 
         :root{
             --deep: #071a3d;
-            --mid:  #0b3b7c;
-            --sky:  #38bdf8;
-            --sea:  #3b82f6;
+            --mid:  #0b3b7c;
+            --sky:  #38bdf8;
+            --sea:  #3b82f6;
             --cyan: #22d3ee;
         }
 
@@ -56,7 +56,7 @@
             animation: floatY var(--dur) linear infinite, sway var(--dur2) ease-in-out infinite alternate;
         }
         @keyframes floatY { to { transform: translateY(-115vh); } }
-        @keyframes sway   { 0% { margin-left:-6px } 100% { margin-left:6px } }
+        @keyframes sway   { 0% { margin-left:-6px } 100% { margin-left:6px } }
 
         /* 底部波浪 */
         .waves{ position:fixed; left:0; right:0; bottom:-1px; z-index:-1; pointer-events:none; opacity:.75; }
@@ -103,14 +103,73 @@
             display: block;
             opacity: 1;
         }
+
+        /* 滾動容器設定 */
+        .scroll-container-wrapper {
+            position: relative; /* 定位參考點 */
+        }
+        .scroll-container {
+            position: relative;
+            /* 讓捲軸隱藏 */
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+        .scroll-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera*/
+        }
+        
+        /* 左右漸層箭頭的通用樣式 */
+        .scroll-gradient, .scroll-arrow {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 36px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none; /* 讓箭頭下方的內容可以被點擊 */
+        }
+        
+        /* 漸層效果 */
+        .scroll-gradient.left {
+            left: 0;
+            background: linear-gradient(90deg, #fff 0%, rgba(255, 255, 255, 0) 100%);
+        }
+        .scroll-gradient.right {
+            right: 0;
+            background: linear-gradient(270deg, #fff 0%, rgba(255, 255, 255, 0) 100%);
+        }
+        
+        /* 箭頭本身 */
+        .scroll-arrow.left {
+            left: 0;
+            pointer-events: auto; /* 讓箭頭可以被點擊 */
+        }
+        .scroll-arrow.right {
+            right: 0;
+            pointer-events: auto; /* 讓箭頭可以被點擊 */
+        }
+
+        /* 隱藏狀態 */
+        .scroll-arrow.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .scroll-gradient.hidden {
+            opacity: 0;
+        }
+        
     </style>
 </head>
 <body>
 
-    <!-- 背景裝飾 -->
+    <!-- Background decoration -->
     <div class="mesh"></div>
     <div class="bokeh">
-        <span style="--top:110vh; --left:5vw;  --dur:32s; --dur2:6s"></span>
+        <span style="--top:110vh; --left:5vw;  --dur:32s; --dur2:6s"></span>
         <span style="--top:115vh; --left:20vw; --dur:28s; --dur2:5s"></span>
         <span style="--top:120vh; --left:35vw; --dur:36s; --dur2:7s"></span>
         <span style="--top:108vh; --left:50vw; --dur:30s; --dur2:6s"></span>
@@ -165,44 +224,58 @@
         <!-- Main content: category tabs and coach list -->
         <section class="flex-1 space-y-8">
             <!-- 調整此處的 padding，從 p-6 調整為 p-4，減少整體白框的留白 -->
-            <div class="bg-white rounded-xl p-3 sidebar">
+            <div class="bg-white rounded-xl p-3 sidebar relative">
                 <!-- 調整「課程類別」標題的字體大小和顏色 -->
                 <!-- 更改為深藍色，並使用 font-sans 以區別於下方的項目文字 -->
                 <h2 class="text-2xl font-bold font-sans text-blue-600 mb-1">課程類別</h2>
-                <!--
-                    手機版: 使用 flex 佈局實現橫向滾動，按鈕會緊湊排列。
-                    電腦版 (lg: 斷點): 使用 grid 佈局恢復成五欄，並取消橫向滾動。
-                -->
-                <div id="category-tabs" class="flex space-x-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:gap-4 lg:overflow-x-hidden">
-                    <!--
-                        根據使用者需求調整按鈕樣式：
-                        1. 圖片和文字恢復到原本大小：
-                           - 圖片維持 w-8 h-8，桌面版 w-10 h-10。
-                           - 文字恢復為 text-xs，桌面版 lg:text-xs。
-                        2. 整體留白減少：
-                           - 恢復按鈕的 padding，從 px-1 py-0 調整回 p-2。
-                           - 圖片與文字的間距也恢復為 space-y-1。
-                    -->
-                    <button data-category="游泳" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
-                        <img src="swim.png" alt="游泳" class="w-10 h-10 category-icon lg:w-10 lg:h-10">
-                        <span class="tab-text text-gray-800 text-xs lg:text-xs">游泳</span>
-                    </button>
-                    <button data-category="直排輪" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
-                        <img src="skate.png" alt="直排輪" class="w-10 h-10 category-icon lg:w-10 lg:h-10">
-                        <span class="tab-text text-gray-800 text-xs lg:text-xs">直排輪</span>
-                    </button>
-                    <button data-category="鋼琴" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
-                        <img src="piano.png" alt="鋼琴" class="w-10 h-10 category-icon lg:w-10 lg:h-10">
-                        <span class="tab-text text-gray-800 text-xs lg:text-xs">音樂</span>
-                    </button>
-                    <button data-category="舞蹈" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
-                        <img src="dance.png" alt="舞蹈" class="w-10 h-10 category-icon lg:w-10 lg:h-10">
-                        <span class="tab-text text-gray-800 text-xs lg:text-xs">舞蹈</span>
-                    </button>
-                    <button data-category="繪畫" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
-                        <img src="draw.png" alt="繪畫" class="w-10 h-10 category-icon lg:w-10 lg:h-10">
-                        <span class="tab-text text-gray-800 text-xs lg:text-xs">繪畫</span>
-                    </button>
+                
+                <!-- 左右箭頭和漸層 -->
+                <div id="scroll-gradient-left" class="scroll-gradient left hidden md:hidden"></div>
+                <div id="scroll-gradient-right" class="scroll-gradient right hidden md:hidden"></div>
+                <div id="scroll-arrow-left" class="scroll-arrow left hidden md:hidden cursor-pointer text-gray-600 hover:text-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </div>
+                <div id="scroll-arrow-right" class="scroll-arrow right hidden md:hidden cursor-pointer text-gray-600 hover:text-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
+
+                <!-- 滾動容器 -->
+                <div id="category-tabs-container" class="scroll-container relative pb-2 overflow-x-auto">
+                    <div id="category-tabs" class="flex space-x-4 lg:grid lg:grid-cols-5 lg:gap-4 lg:overflow-x-hidden">
+                        <!--
+                            根據使用者需求調整按鈕樣式：
+                            1. 圖片和文字恢復到原本大小：
+                                - 圖片維持 w-8 h-8，桌面版 w-10 h-10。
+                                - 文字恢復為 text-xs，桌面版 lg:text-xs。
+                            2. 整體留白減少：
+                                - 恢復按鈕的 padding，從 px-1 py-0 調整回 p-2。
+                            - 圖片與文字的間距也恢復為 space-y-1。
+                        -->
+                        <button data-category="游泳" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
+                            <img src="swim.png" alt="游泳" class="w-10 h-10 category-icon lg:w-10 lg:h-10">
+                            <span class="tab-text text-gray-800 text-xs lg:text-xs">游泳</span>
+                        </button>
+                        <button data-category="直排輪" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
+                            <img src="skate.png" alt="直排輪" class="w-10 h-10 category-icon lg:w-10 lg:h-10">
+                            <span class="tab-text text-gray-800 text-xs lg:text-xs">直排輪</span>
+                        </button>
+                        <button data-category="鋼琴" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
+                            <img src="piano.png" alt="鋼琴" class="w-10 h-10 category-icon lg:w-10 lg:h-10">
+                            <span class="tab-text text-gray-800 text-xs lg:text-xs">音樂</span>
+                        </button>
+                        <button data-category="舞蹈" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
+                            <img src="dance.png" alt="舞蹈" class="w-10 h-10 category-icon lg:w-10 lg:h-10">
+                            <span class="tab-text text-gray-800 text-xs lg:text-xs">舞蹈</span>
+                        </button>
+                        <button data-category="繪畫" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
+                            <img src="draw.png" alt="繪畫" class="w-10 h-10 category-icon lg:w-10 lg:h-10">
+                            <span class="tab-text text-gray-800 text-xs lg:text-xs">繪畫</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -241,8 +314,13 @@
         ];
 
         // UI elements selection
+        const categoryTabsContainer = document.getElementById('category-tabs-container');
         const categoryTabs = document.getElementById('category-tabs');
         const coachList = document.getElementById('coach-list');
+        const scrollArrowLeft = document.getElementById('scroll-arrow-left');
+        const scrollArrowRight = document.getElementById('scroll-arrow-right');
+        const scrollGradientLeft = document.getElementById('scroll-gradient-left');
+        const scrollGradientRight = document.getElementById('scroll-gradient-right');
         
         // Mobile menu elements
         const menuToggle = document.getElementById('menu-toggle');
@@ -262,8 +340,6 @@
 
             filteredCoaches.forEach(coach => {
                 const card = document.createElement('div');
-                // 將教練卡片的佈局調整為垂直排列，並讓內容與按鈕之間有足夠間距。
-                // 恢復 flex-col 讓預約按鈕回到下方
                 card.className = 'coach-card bg-white p-4 md:p-6 rounded-xl space-y-4 shadow-md flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6';
                 card.innerHTML = `
                     <div class="flex items-start gap-4 md:gap-6 flex-1">
@@ -274,7 +350,7 @@
                         <div class="flex-1 space-y-2">
                             <!-- Adjust title font size for mobile -->
                             <h3 class="text-xl md:text-2xl font-bold text-gray-800">${coach.name}</h3>
-                            <!-- 新增評價人數顯示 -->
+                            <!-- Add review count display -->
                             <p class="text-gray-600 text-sm">家長評價: <span class="text-yellow-500">★</span> ${coach.rating} (已有 ${coach.reviewCount} 評論)</p>
                             <p class="text-gray-600 mt-2 text-xs md:text-sm">${coach.bio}</p>
                         </div>
@@ -288,6 +364,48 @@
                 coachList.appendChild(card);
             });
         }
+        
+        // Function to update the visibility of scroll arrows based on scroll position
+        const updateScrollArrows = () => {
+            const container = categoryTabsContainer;
+            if (!container) return;
+
+            const isAtEnd = container.scrollLeft + container.clientWidth >= container.scrollWidth - 1; // Add a small tolerance
+            const isAtStart = container.scrollLeft === 0;
+
+            // Show/hide left arrow and gradient
+            if (isAtStart) {
+                scrollArrowLeft.classList.add('hidden');
+                scrollGradientLeft.classList.add('hidden');
+            } else {
+                scrollArrowLeft.classList.remove('hidden');
+                scrollGradientLeft.classList.remove('hidden');
+            }
+
+            // Show/hide right arrow and gradient
+            if (isAtEnd) {
+                scrollArrowRight.classList.add('hidden');
+                scrollGradientRight.classList.add('hidden');
+            } else {
+                scrollArrowRight.classList.remove('hidden');
+                scrollGradientRight.classList.remove('hidden');
+            }
+        };
+
+        // Event listeners for scroll arrows
+        scrollArrowLeft.addEventListener('click', () => {
+            categoryTabsContainer.scrollBy({
+                left: -200, // Scroll a fixed amount
+                behavior: 'smooth'
+            });
+        });
+
+        scrollArrowRight.addEventListener('click', () => {
+            categoryTabsContainer.scrollBy({
+                left: 200, // Scroll a fixed amount
+                behavior: 'smooth'
+            });
+        });
 
         // Event listener for category tabs
         categoryTabs.addEventListener('click', (e) => {
@@ -300,7 +418,7 @@
                     if (img) {
                         img.classList.remove('active');
                     }
-                    // 將非選中狀態的文字顏色設定為黑色
+                    // Set text color for non-active state to black
                     btn.querySelector('.tab-text').classList.remove('text-white', 'text-blue-500');
                     btn.querySelector('.tab-text').classList.add('text-gray-800');
                 });
@@ -311,7 +429,7 @@
                 if (img) {
                     img.classList.add('active');
                 }
-                // 將選中狀態的文字顏色設定為白色
+                // Set text color for active state to white
                 targetButton.querySelector('.tab-text').classList.remove('text-gray-800');
                 targetButton.querySelector('.tab-text').classList.add('text-white');
 
@@ -329,7 +447,7 @@
             if (img) {
                 img.classList.add('active');
             }
-            // 初始載入時將第一個選單的文字設定為白色
+            // On initial load, set the text of the first menu item to white
             firstTab.querySelector('.tab-text').classList.remove('text-gray-800');
             firstTab.querySelector('.tab-text').classList.add('text-white');
             renderCoaches(firstTab.dataset.category);
@@ -346,6 +464,15 @@
         menuToggle.addEventListener('click', toggleMenu);
         menuClose.addEventListener('click', toggleMenu);
         menuOverlay.addEventListener('click', toggleMenu);
+
+        // Add event listener for scroll to update arrows
+        categoryTabsContainer.addEventListener('scroll', updateScrollArrows);
+        
+        // Initial check on page load and window resize
+        window.addEventListener('load', () => {
+            updateScrollArrows();
+            window.addEventListener('resize', updateScrollArrows);
+        });
     </script>
 </body>
 </html>
