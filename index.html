@@ -7,19 +7,24 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>林口教練預約系統</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
 
   <style>
 
-
-/* 統一整站字體為 Noto Serif TC（含表單/按鈕） */
-   html, body, h1, h2, h3, h4, h5, h6,
-   p, span, a, button, input, select, textarea, label,
-   .small, .tab-text, .sidebar, .coach-card {
-  font-family: 'Noto Serif TC', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', serif !important;
+/* 全站用 Open Sans；中文用 Noto Sans TC / PingFang 等做後備 */
+html, body, h1, h2, h3, h4, h5, h6,
+p, span, a, button, input, select, textarea, label,
+.small, .tab-text, .sidebar, .coach-card {
+  font-family: 'Open Sans', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif !important;
 }
+
+.font-sans, .font-serif {
+  font-family: 'Open Sans', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif !important;
+}
+
 
 /* 以防 Tailwind 的 font-sans/font-serif 實用類別覆蓋 */
 .font-sans, .font-serif {
@@ -219,7 +224,7 @@
             </div>
 
             <div id="category-tabs-container" class="scroll-container relative pb-2 overflow-x-auto">
-              <div id="category-tabs" class="flex space-x-4 lg:grid lg:grid-cols-4 lg:gap-4 lg:overflow-x-hidden">
+				<div id="category-tabs" class="flex space-x-4 lg:grid lg:grid-cols-5 lg:gap-4 lg:space-x-0 lg:overflow-x-hidden">
                 <button data-category="游泳" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
                   <img src="swim.png" alt="游泳" class="w-14 h-14 category-icon lg:w-10 lg:h-10">
                   <span class="tab-text text-gray-800 text-xs lg:text-xs">游泳</span>
