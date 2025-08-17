@@ -2,13 +2,29 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
+  <!-- 只保留這個連結即可，避免重複載入 -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet">
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>林口教練預約系統</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&family=Inter:wght@400;600;700&display=swap');
 
+
+/* 統一整站字體為 Noto Serif TC（含表單/按鈕） */
+   html, body, h1, h2, h3, h4, h5, h6,
+   p, span, a, button, input, select, textarea, label,
+   .small, .tab-text, .sidebar, .coach-card {
+  font-family: 'Noto Serif TC', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', serif !important;
+}
+
+/* 以防 Tailwind 的 font-sans/font-serif 實用類別覆蓋 */
+.font-sans, .font-serif {
+  font-family: 'Noto Serif TC', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', serif !important;
+}
     :root{
       --ink: #1b2a41;           /* 墨色（字色） */
       --washi: #f8f6f2;         /* 和紙底色 */
@@ -19,12 +35,11 @@
     }
 
     html, body { height: 100%; }
-    body{
-      font-family: 'Inter','Noto Serif TC', system-ui, -apple-system, "PingFang TC", "Noto Sans TC", sans-serif;
-      color: var(--ink);
-      background: var(--washi);
-      overflow-x: hidden;
-    }
+ body{
+  color: var(--ink);
+  background: var(--washi);
+  overflow-x: hidden;
+}
 
     /* ===== 日系背景容器 ===== */
     .jp-bg-wrap{ position: relative; min-height: 100dvh; isolation: isolate; }
@@ -188,7 +203,7 @@
       <main class="container mx-auto px-4 py-8 flex-1 flex flex-col md:flex-row gap-6">
         <section class="flex-1 space-y-8">
           <div class="bg-white/90 backdrop-blur rounded-xl p-3 sidebar relative">
-            <h2 class="text-2xl font-bold font-sans text-blue-600 mb-1">課程類別</h2>
+            <h2 class="text-1xl font-bold font-sans text-blue-600 mb-1">課程類別</h2>
 
             <div id="scroll-gradient-left" class="scroll-gradient left hidden md:hidden"></div>
             <div id="scroll-gradient-right" class="scroll-gradient right hidden md:hidden"></div>
@@ -204,25 +219,25 @@
             </div>
 
             <div id="category-tabs-container" class="scroll-container relative pb-2 overflow-x-auto">
-              <div id="category-tabs" class="flex space-x-4 lg:grid lg:grid-cols-5 lg:gap-4 lg:overflow-x-hidden">
+              <div id="category-tabs" class="flex space-x-4 lg:grid lg:grid-cols-4 lg:gap-4 lg:overflow-x-hidden">
                 <button data-category="游泳" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
-                  <img src="swim.png" alt="游泳" class="w-10 h-10 category-icon lg:w-10 lg:h-10">
+                  <img src="swim.png" alt="游泳" class="w-14 h-14 category-icon lg:w-10 lg:h-10">
                   <span class="tab-text text-gray-800 text-xs lg:text-xs">游泳</span>
                 </button>
                 <button data-category="直排輪" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
-                  <img src="skate.png" alt="直排輪" class="w-10 h-10 category-icon lg:w-10 lg:h-10">
+                  <img src="skate.png" alt="直排輪" class="w-14 h-14 category-icon lg:w-10 lg:h-10">
                   <span class="tab-text text-gray-800 text-xs lg:text-xs">直排輪</span>
                 </button>
                 <button data-category="鋼琴" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
-                  <img src="piano.png" alt="鋼琴" class="w-10 h-10 category-icon lg:w-10 lg:h-10">
+                  <img src="piano.png" alt="鋼琴" class="w-14 h-14 category-icon lg:w-10 lg:h-10">
                   <span class="tab-text text-gray-800 text-xs lg:text-xs">音樂</span>
                 </button>
                 <button data-category="舞蹈" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
-                  <img src="dance.png" alt="舞蹈" class="w-10 h-10 category-icon lg:w-10 lg:h-10">
+                  <img src="dance.png" alt="舞蹈" class="w-14 h-14 category-icon lg:w-10 lg:h-10">
                   <span class="tab-text text-gray-800 text-xs lg:text-xs">舞蹈</span>
                 </button>
                 <button data-category="繪畫" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
-                  <img src="draw.png" alt="繪畫" class="w-10 h-10 category-icon lg:w-10 lg:h-10">
+                  <img src="draw.png" alt="繪畫" class="w-14 h-14 category-icon lg:w-10 lg:h-10">
                   <span class="tab-text text-gray-800 text-xs lg:text-xs">繪畫</span>
                 </button>
               </div>
