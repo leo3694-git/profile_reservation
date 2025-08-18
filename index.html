@@ -1,379 +1,439 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <!-- 只保留這個連結即可，避免重複載入 -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>林口教練預約系統</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>林口教練預約系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 
 
-  <style>
+    <style>
 
-/* 全站用 Open Sans；中文用 Noto Sans TC / PingFang 等做後備 */
-html, body, h1, h2, h3, h4, h5, h6,
-p, span, a, button, input, select, textarea, label,
-.small, .tab-text, .sidebar, .coach-card {
-  font-family: 'Open Sans', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif !important;
-}
+        /* 全站用 Open Sans；中文用 Noto Sans TC / PingFang 等做後備 */
+        html, body, h1, h2, h3, h4, h5, h6,
+        p, span, a, button, input, select, textarea, label,
+        .small, .tab-text, .sidebar, .coach-card {
+            font-family: 'Open Sans', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif !important;
+        }
 
-.font-sans, .font-serif {
-  font-family: 'Open Sans', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif !important;
-}
+        .font-sans, .font-serif {
+            font-family: 'Open Sans', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif !important;
+        }
 
 
-/* 以防 Tailwind 的 font-sans/font-serif 實用類別覆蓋 */
-.font-sans, .font-serif {
-  font-family: 'Noto Serif TC', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', serif !important;
-}
-    :root{
-      --ink: #1b2a41;           /* 墨色（字色） */
-      --washi: #f8f6f2;         /* 和紙底色 */
-      --sky: #eaf2fb;           /* 天藍霧感 */
-      --sakura: #f6e9ee;        /* 淡櫻粉 */
-      --mizu: #dfeaf6;          /* 淡水藍 */
-      --accent: #6aa6d7;        /* 點綴藍 */
-    }
+        /* 以防 Tailwind 的 font-sans/font-serif 實用類別覆蓋 */
+        .font-sans, .font-serif {
+            font-family: 'Noto Serif TC', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', serif !important;
+        }
+        :root{
+            --ink: #1b2a41;          /* 墨色（字色） */
+            --washi: #f8f6f2;        /* 和紙底色 */
+            --sky: #eaf2fb;          /* 天藍霧感 */
+            --sakura: #f6e9ee;         /* 淡櫻粉 */
+            --mizu: #dfeaf6;         /* 淡水藍 */
+            --accent: #6aa6d7;         /* 點綴藍 */
+        }
 
-    html, body { height: 100%; }
- body{
-  color: var(--ink);
-  background: var(--washi);
-  overflow-x: hidden;
-}
+        html, body { height: 100%; }
+        body{
+            color: var(--ink);
+            background: var(--washi);
+            overflow-x: hidden;
+        }
 
-    /* ===== 日系背景容器 ===== */
-    .jp-bg-wrap{ position: relative; min-height: 100dvh; isolation: isolate; }
+        /* ===== 日系背景容器 ===== */
+        .jp-bg-wrap{ position: relative; min-height: 100dvh; isolation: isolate; }
 
-    /* 1) 和紙質感（多層混合，無圖片） */
-    .jp-paper{
-      position: fixed; inset:0; z-index:-5;
-      background:
-        repeating-linear-gradient(115deg, rgba(0,0,0,0.03) 0 1px, transparent 1px 12px),
-        repeating-linear-gradient(295deg, rgba(0,0,0,0.025) 0 1px, transparent 1px 10px),
-        radial-gradient(1000px 600px at 10% 0%, rgba(0,0,0,0.035), transparent 60%),
-        radial-gradient(900px 520px at 90% 10%, rgba(0,0,0,0.025), transparent 60%),
-        linear-gradient(180deg, var(--sky), var(--washi) 32%, var(--washi) 68%, #f7f7f3);
-      filter: saturate(104%) contrast(101%);
-    }
+        /* 1) 和紙質感（多層混合，無圖片） */
+        .jp-paper{
+            position: fixed; inset:0; z-index:-5;
+            background:
+                repeating-linear-gradient(115deg, rgba(0,0,0,0.03) 0 1px, transparent 1px 12px),
+                repeating-linear-gradient(295deg, rgba(0,0,0,0.025) 0 1px, transparent 1px 10px),
+                radial-gradient(1000px 600px at 10% 0%, rgba(0,0,0,0.035), transparent 60%),
+                radial-gradient(900px 520px at 90% 10%, rgba(0,0,0,0.025), transparent 60%),
+                linear-gradient(180deg, var(--sky), var(--washi) 32%, var(--washi) 68%, #f7f7f3);
+            filter: saturate(104%) contrast(101%);
+        }
 
-    /* 2) 青海波裝飾帶（上方） */
-    .jp-seigaiha{
-      position: fixed; left:0; right:0; top:0; height:110px; z-index:-4; opacity:.38;
-      --p: 28px;
-      background:
-        radial-gradient(circle at 0 0, transparent calc(var(--p) - 1px), rgba(0,0,0,.08) calc(var(--p) - 1px) var(--p), transparent var(--p)),
-        radial-gradient(circle at var(--p) 0, transparent calc(var(--p) - 1px), rgba(0,0,0,.08) calc(var(--p) - 1px) var(--p), transparent var(--p));
-      background-size: calc(var(--p)*2) var(--p), calc(var(--p)*2) var(--p);
-      background-position: 0 0, var(--p) var(--p);
-      -webkit-mask-image: linear-gradient(to bottom, black, black 70%, transparent 100%);
-      mask-image: linear-gradient(to bottom, black, black 70%, transparent 100%);
-      animation: seigai 16s ease-in-out infinite alternate;
-    }
-    @keyframes seigai { from { transform: translateY(0px);} to{ transform: translateY(6px);} }
+        /* 2) 青海波裝飾帶（上方） */
+        .jp-seigaiha{
+            position: fixed; left:0; right:0; top:0; height:110px; z-index:-4; opacity:.38;
+            --p: 28px;
+            background:
+                radial-gradient(circle at 0 0, transparent calc(var(--p) - 1px), rgba(0,0,0,.08) calc(var(--p) - 1px) var(--p), transparent var(--p)),
+                radial-gradient(circle at var(--p) 0, transparent calc(var(--p) - 1px), rgba(0,0,0,.08) calc(var(--p) - 1px) var(--p), transparent var(--p));
+            background-size: calc(var(--p)*2) var(--p), calc(var(--p)*2) var(--p);
+            background-position: 0 0, var(--p) var(--p);
+            -webkit-mask-image: linear-gradient(to bottom, black, black 70%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black, black 70%, transparent 100%);
+            animation: seigai 16s ease-in-out infinite alternate;
+        }
+        @keyframes seigai { from { transform: translateY(0px);} to{ transform: translateY(6px);} }
 
-    /* 3) 筆觸暈染 */
-    .jp-ink{
-      position: fixed; inset:0; z-index:-3; pointer-events:none;
-      background:
-        radial-gradient(420px 280px at 12% 22%, color-mix(in srgb, var(--sakura) 80%, white) 40%, transparent 70%),
-        radial-gradient(520px 340px at 82% 18%, color-mix(in srgb, var(--mizu) 80%, white) 38%, transparent 70%),
-        radial-gradient(460px 300px at 72% 78%, color-mix(in srgb, #e7f4ff 80%, white) 36%, transparent 72%);
-      filter: blur(18px) saturate(108%);
-      animation: inkFloat 24s ease-in-out infinite alternate;
-    }
-    @keyframes inkFloat {
-      from { transform: translate3d(0,0,0) scale(1); }
-      to   { transform: translate3d(-2vw, -1vw,0) scale(1.02); }
-    }
+        /* 3) 筆觸暈染 */
+        .jp-ink{
+            position: fixed; inset:0; z-index:-3; pointer-events:none;
+            background:
+                radial-gradient(420px 280px at 12% 22%, color-mix(in srgb, var(--sakura) 80%, white) 40%, transparent 70%),
+                radial-gradient(520px 340px at 82% 18%, color-mix(in srgb, var(--mizu) 80%, white) 38%, transparent 70%),
+                radial-gradient(460px 300px at 72% 78%, color-mix(in srgb, #e7f4ff 80%, white) 36%, transparent 72%);
+            filter: blur(18px) saturate(108%);
+            animation: inkFloat 24s ease-in-out infinite alternate;
+        }
+        @keyframes inkFloat {
+            from { transform: translate3d(0,0,0) scale(1); }
+            to   { transform: translate3d(-2vw, -1vw,0) scale(1.02); }
+        }
 
-    /* 4) 櫻花花瓣 */
-    .jp-petals{ position: fixed; inset:0; z-index:-2; pointer-events:none; overflow:hidden; }
-    .petal{
-      position: absolute; width:14px; height:10px; border-radius:60% 60% 60% 60% / 75% 75% 25% 25%;
-      background: radial-gradient(ellipse at 30% 30%, #fff 20%, #f9dfe8 55%, #f3b9cd 100%);
-      box-shadow: 0 0 6px rgba(243,185,205,.25);
-      opacity:.85;
-      animation: fall var(--dur,18s) linear infinite, sway var(--sway,6s) ease-in-out infinite alternate;
-      transform: rotate(var(--rot,12deg));
-    }
-    @keyframes fall { to { transform: translateY(110vh) rotate(40deg); } }
-    @keyframes sway { from { margin-left:-12px } to { margin-left:12px } }
+        /* 4) 櫻花花瓣 */
+        .jp-petals{ position: fixed; inset:0; z-index:-2; pointer-events:none; overflow:hidden; }
+        .petal{
+            position: absolute; width:14px; height:10px; border-radius:60% 60% 60% 60% / 75% 75% 25% 25%;
+            background: radial-gradient(ellipse at 30% 30%, #fff 20%, #f9dfe8 55%, #f3b9cd 100%);
+            box-shadow: 0 0 6px rgba(243,185,205,.25);
+            opacity:.85;
+            animation: fall var(--dur,18s) linear infinite, sway var(--sway,6s) ease-in-out infinite alternate;
+            transform: rotate(var(--rot,12deg));
+        }
+        @keyframes fall { to { transform: translateY(110vh) rotate(40deg); } }
+        @keyframes sway { from { margin-left:-12px } to { margin-left:12px } }
 
-    /* 5) 底部柔波 */
-    .jp-waves{
-      position: fixed; left:0; right:0; bottom:-1px; height:180px; z-index:-1; opacity:.9;
-      --c1: color-mix(in srgb, var(--mizu) 82%, white);
-      --c2: color-mix(in srgb, var(--sky) 72%, white);
-      --c3: color-mix(in srgb, var(--sakura) 72%, white);
-      background:
-        radial-gradient(120% 80% at 10% 100%, var(--c1) 0 34%, transparent 35%),
-        radial-gradient(120% 80% at 50% 100%, var(--c2) 0 34%, transparent 35%),
-        radial-gradient(120% 80% at 90% 100%, var(--c3) 0 34%, transparent 35%);
-      filter: blur(10px) saturate(108%);
-      animation: waveDrift 18s ease-in-out infinite alternate;
-    }
-    @keyframes waveDrift { from { transform: translateX(0);} to{ transform: translateX(-4vw);} }
+        /* 5) 底部柔波 */
+        .jp-waves{
+            position: fixed; left:0; right:0; bottom:-1px; height:180px; z-index:-1; opacity:.9;
+            --c1: color-mix(in srgb, var(--mizu) 82%, white);
+            --c2: color-mix(in srgb, var(--sky) 72%, white);
+            --c3: color-mix(in srgb, var(--sakura) 72%, white);
+            background:
+                radial-gradient(120% 80% at 10% 100%, var(--c1) 0 34%, transparent 35%),
+                radial-gradient(120% 80% at 50% 100%, var(--c2) 0 34%, transparent 35%),
+                radial-gradient(120% 80% at 90% 100%, var(--c3) 0 34%, transparent 35%);
+            filter: blur(10px) saturate(108%);
+            animation: waveDrift 18s ease-in-out infinite alternate;
+        }
+        @keyframes waveDrift { from { transform: translateX(0);} to{ transform: translateX(-4vw);} }
 
-    /* 動畫偏好 */
-    @media (prefers-reduced-motion: reduce) {
-      .jp-seigaiha, .jp-ink, .petal, .jp-waves { animation: none !important; }
-    }
+        /* 動畫偏好 */
+        @media (prefers-reduced-motion: reduce) {
+            .jp-seigaiha, .jp-ink, .petal, .jp-waves { animation: none !important; }
+        }
 
-    /* ===== 你原本頁面會用到的自訂樣式（保留） ===== */
-    .sidebar { background-color:#ffffff; border-radius:0.75rem; box-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1); }
-    .tab-button { transition: all .2s ease-in-out; cursor: pointer; }
-    .tab-button.active { background-color:#2563eb; color:#fff; font-weight:600; }
-    .coach-card { transition: all .2s ease-in-out; cursor: pointer; }
-    .coach-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
+        /* ===== 你原本頁面會用到的自訂樣式（保留） ===== */
+        .sidebar { background-color:#ffffff; border-radius:0.75rem; box-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .tab-button { transition: all .2s ease-in-out; cursor: pointer; }
+        .tab-button.active { background-color:#2563eb; color:#fff; font-weight:600; }
+        .coach-card { transition: all .2s ease-in-out; cursor: pointer; }
+        .coach-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
 
-    /* Mobile Menu */
-    .mobile-menu{
-      position: fixed; top:0; right:0; width:75%; max-width:320px; height:100%;
-      background:#fff; z-index:50; transform: translateX(100%); transition: transform .3s ease-in-out;
-      padding:1.5rem; box-shadow:-4px 0 10px rgba(0,0,0,.1);
-    }
-    .mobile-menu.open{ transform: translateX(0); }
-    .menu-overlay{
-      position: fixed; inset:0; background-color: rgba(0,0,0,.4); z-index:40; display:none; opacity:1; transition: opacity .3s;
-    }
-    .menu-overlay.open{ display:block; opacity:1; }
+        /* Mobile Menu */
+        .mobile-menu{
+            position: fixed; top:0; right:0; width:75%; max-width:320px; height:100%;
+            background:#fff; z-index:50; transform: translateX(100%); transition: transform .3s ease-in-out;
+            padding:1.5rem; box-shadow:-4px 0 10px rgba(0,0,0,.1);
+        }
+        .mobile-menu.open{ transform: translateX(0); }
+        .menu-overlay{
+            position: fixed; inset:0; background-color: rgba(0,0,0,.4); z-index:40; display:none; opacity:1; transition: opacity .3s;
+        }
+        .menu-overlay.open{ display:block; opacity:1; }
 
-    /* 滾動容器＆箭頭 */
-    .scroll-container { position:relative; -ms-overflow-style:none; scrollbar-width:none; }
-    .scroll-container::-webkit-scrollbar { display:none; }
-    .scroll-gradient, .scroll-arrow{
-      position:absolute; top:0; bottom:0; width:36px; z-index:10; display:flex; align-items:center; justify-content:center;
-      opacity:1; transition: opacity .3s ease-in-out; pointer-events:none;
-    }
-    .scroll-gradient.left{ left:0; background: linear-gradient(90deg, #fff 0%, rgba(255,255,255,0) 100%); }
-    .scroll-gradient.right{ right:0; background: linear-gradient(270deg, #fff 0%, rgba(255,255,255,0) 100%); }
-    .scroll-arrow.left{ left:0; pointer-events:auto; }
-    .scroll-arrow.right{ right:0; pointer-events:auto; }
-    .scroll-arrow.hidden{ opacity:0; pointer-events:none; }
-    .scroll-gradient.hidden{ opacity:0; }
-  </style>
+        /* 滾動容器＆箭頭 */
+        .scroll-container { position:relative; -ms-overflow-style:none; scrollbar-width:none; }
+        .scroll-container::-webkit-scrollbar { display:none; }
+        .scroll-gradient, .scroll-arrow{
+            position:absolute; top:0; bottom:0; width:36px; z-index:10; display:flex; align-items:center; justify-content:center;
+            opacity:1; transition: opacity .3s ease-in-out; pointer-events:none;
+        }
+        .scroll-gradient.left{ left:0; background: linear-gradient(90deg, #fff 0%, rgba(255,255,255,0) 100%); }
+        .scroll-gradient.right{ right:0; background: linear-gradient(270deg, #fff 0%, rgba(255,255,255,0) 100%); }
+        .scroll-arrow.left{ left:0; pointer-events:auto; }
+        .scroll-arrow.right{ right:0; pointer-events:auto; }
+        .scroll-arrow.hidden{ opacity:0; pointer-events:none; }
+        .scroll-gradient.hidden{ opacity:0; }
+
+        /* 自訂：用戶功能按鈕反白樣式 */
+        .user-btn {
+            background-color: #f3f4f6; /* Tailwind gray-200 */
+            color: #1f2937; /* Tailwind gray-800 */
+            font-weight: 700;
+            transition: all .2s ease-in-out;
+        }
+        .user-btn.active {
+            background-color: #2563eb; /* Tailwind blue-600 */
+            color: white;
+            font-weight: 700;
+        }
+        /* 手機版按鈕樣式 */
+        .user-btn-mobile {
+             background-color: #f3f4f6; /* Tailwind gray-200 */
+            color: #1f2937; /* Tailwind gray-800 */
+            transition: all .2s ease-in-out;
+        }
+        .user-btn-mobile.active {
+            background-color: #2563eb; /* Tailwind blue-600 */
+            color: white;
+        }
+    </style>
 </head>
 
 <body>
-  <!-- ✅ 新背景：只保留這組，已移除舊的 mesh/bokeh/svg waves -->
-  <div class="jp-bg-wrap">
-    <div class="jp-paper"></div>
-    <div class="jp-seigaiha"></div>
-    <div class="jp-ink"></div>
+    <div class="jp-bg-wrap">
+        <div class="jp-paper"></div>
+        <div class="jp-seigaiha"></div>
+        <div class="jp-ink"></div>
 
-    <div class="jp-petals">
-      <span class="petal" style="left:6vw;  top:-8vh;  --dur:22s; --sway:7s;  --rot:8deg;"></span>
-      <span class="petal" style="left:24vw; top:-12vh; --dur:18s; --sway:6s;  --rot:14deg;"></span>
-      <span class="petal" style="left:52vw; top:-16vh; --dur:20s; --sway:7.5s;--rot:10deg;"></span>
-      <span class="petal" style="left:74vw; top:-10vh; --dur:24s; --sway:8s;  --rot:6deg;"></span>
-      <span class="petal" style="left:86vw; top:-14vh; --dur:19s; --sway:6.8s;--rot:12deg;"></span>
-    </div>
-
-    <div class="jp-waves"></div>
-
-    <!-- ✅ 你的原本頁面內容 -->
-    <div class="page" style="position:relative; z-index:0;">
-
-      <header class="bg-white/90 backdrop-blur shadow-sm sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 class="text-2xl font-bold text-gray-800">林口教練課程預約系統</h1>
-          <button id="menu-toggle" class="md:hidden p-2 text-gray-800 focus:outline-none">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+        <div class="jp-petals">
+            <span class="petal" style="left:6vw;  top:-8vh;  --dur:22s; --sway:7s;  --rot:8deg;"></span>
+            <span class="petal" style="left:24vw; top:-12vh; --dur:18s; --sway:6s;  --rot:14deg;"></span>
+            <span class="petal" style="left:52vw; top:-16vh; --dur:20s; --sway:7.5s;--rot:10deg;"></span>
+            <span class="petal" style="left:74vw; top:-10vh; --dur:24s; --sway:8s;  --rot:6deg;"></span>
+            <span class="petal" style="left:86vw; top:-14vh; --dur:19s; --sway:6.8s;--rot:12deg;"></span>
         </div>
-      </header>
 
-      <nav id="mobile-menu" class="mobile-menu md:hidden">
-        <button id="menu-close" class="absolute top-4 right-4 p-2 text-gray-800 focus:outline-none">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-        <div class="space-y-4 pt-12">
-          <h3 class="text-xl font-semibold text-gray-800">用戶功能</h3>
-          <button class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg hover:bg-blue-600 transition-colors shadow-md">查詢/取消預約</button>
-          <button class="w-full bg-gray-200 text-gray-800 font-bold py-3 rounded-lg hover:bg-gray-300 transition-colors shadow-md">教練專區</button>
-        </div>
-      </nav>
+        <div class="jp-waves"></div>
 
-      <div id="menu-overlay" class="menu-overlay"></div>
+        <div class="page" style="position:relative; z-index:0;">
 
-      <main class="container mx-auto px-4 py-8 flex-1 flex flex-col md:flex-row gap-6">
-        <section class="flex-1 space-y-8">
-          <div class="bg-white/90 backdrop-blur rounded-xl p-3 sidebar relative">
-            <h2 class="text-1xl font-bold font-bold text-gray-800 mb-1">課程類別</h2>
+            <header class="bg-white/90 backdrop-blur shadow-sm sticky top-0 z-50">
+                <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+                    <h1 class="text-2xl font-bold text-gray-800">林口教練課程預約系統</h1>
+                    <button id="menu-toggle" class="md:hidden p-2 text-gray-800 focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </header>
 
-            <div id="scroll-gradient-left" class="scroll-gradient left hidden md:hidden"></div>
-            <div id="scroll-gradient-right" class="scroll-gradient right hidden md:hidden"></div>
-            <div id="scroll-arrow-left" class="scroll-arrow left hidden md:hidden cursor-pointer text-gray-600 hover:text-gray-800">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </div>
-            <div id="scroll-arrow-right" class="scroll-arrow right hidden md:hidden cursor-pointer text-gray-600 hover:text-gray-800">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-
-            <div id="category-tabs-container" class="scroll-container relative pb-2 overflow-x-auto">
-				<div id="category-tabs" class="flex space-x-4 lg:grid lg:grid-cols-5 lg:gap-4 lg:space-x-0 lg:overflow-x-hidden">
-                <button data-category="游泳" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
-                  <img src="swim.png" alt="游泳" class="w-14 h-14 category-icon lg:w-10 lg:h-10">
-                  <span class="tab-text text-gray-800 text-xs lg:text-xs">游泳</span>
+            <nav id="mobile-menu" class="mobile-menu md:hidden">
+                <button id="menu-close" class="absolute top-4 right-4 p-2 text-gray-800 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                 </button>
-                <button data-category="直排輪" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
-                  <img src="skate.png" alt="直排輪" class="w-14 h-14 category-icon lg:w-10 lg:h-10">
-                  <span class="tab-text text-gray-800 text-xs lg:text-xs">直排輪</span>
-                </button>
-                <button data-category="鋼琴" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
-                  <img src="piano.png" alt="鋼琴" class="w-14 h-14 category-icon lg:w-10 lg:h-10">
-                  <span class="tab-text text-gray-800 text-xs lg:text-xs">音樂</span>
-                </button>
-                <button data-category="舞蹈" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
-                  <img src="dance.png" alt="舞蹈" class="w-14 h-14 category-icon lg:w-10 lg:h-10">
-                  <span class="tab-text text-gray-800 text-xs lg:text-xs">舞蹈</span>
-                </button>
-                <button data-category="繪畫" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
-                  <img src="draw.png" alt="繪畫" class="w-14 h-14 category-icon lg:w-10 lg:h-10">
-                  <span class="tab-text text-gray-800 text-xs lg:text-xs">繪畫</span>
-                </button>
-              </div>
-            </div>
-          </div>
+                <div class="space-y-4 pt-12">
+                    <h3 class="text-xl font-semibold text-gray-800">用戶功能</h3>
+                    <button id="mobile-reserve-btn" class="w-full font-bold py-3 rounded-lg hover:bg-blue-600 transition-colors shadow-md user-btn-mobile active" onclick="setActiveButton(this)">查詢/取消預約</button>
+                    <button id="mobile-coach-btn" class="w-full font-bold py-3 rounded-lg hover:bg-blue-600 transition-colors shadow-md user-btn-mobile" onclick="setActiveButton(this)">教練專區</button>
+                    <button class="w-full bg-red-500 text-white font-bold py-3 rounded-lg hover:bg-red-600 transition-colors shadow-md">問題回報</button>
+                </div>
+            </nav>
 
-          <div id="coach-list" class="grid grid-cols-1 gap-6"></div>
-        </section>
+            <div id="menu-overlay" class="menu-overlay"></div>
 
-        <aside class="hidden md:block md:w-72 space-y-6">
-          <div class="sidebar bg-white/90 backdrop-blur p-6 space-y-4">
-            <h3 class="text-xl font-semibold text-gray-800">用戶功能</h3>
-            <button class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg hover:bg-blue-600 transition-colors shadow-md">查詢/取消預約</button>
-            <button class="w-full bg-gray-200 text-gray-800 font-bold py-3 rounded-lg hover:bg-gray-300 transition-colors shadow-md">教練專區</button>
-          </div>
-        </aside>
-      </main>
+            <main class="container mx-auto px-4 py-8 flex-1 flex flex-col md:flex-row gap-6">
+                <section class="flex-1 space-y-8">
+                    <div class="bg-white/90 backdrop-blur rounded-xl p-3 sidebar relative">
+                        <h2 class="text-1xl font-bold font-bold text-gray-800 mb-1">課程類別</h2>
 
-    </div><!-- /.page -->
-  </div><!-- /.jp-bg-wrap -->
+                        <div id="scroll-gradient-left" class="scroll-gradient left hidden md:hidden"></div>
+                        <div id="scroll-gradient-right" class="scroll-gradient right hidden md:hidden"></div>
+                        <div id="scroll-arrow-left" class="scroll-arrow left hidden md:hidden cursor-pointer text-gray-600 hover:text-gray-800">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </div>
+                        <div id="scroll-arrow-right" class="scroll-arrow right hidden md:hidden cursor-pointer text-gray-600 hover:text-gray-800">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
 
-  <script>
-    // ===== Demo 資料 =====
-    const allCoaches = [
-      { id:'coach1', name:'馬邦德', category:'游泳', imageUrl:'img.jpg',   rating:4.8, reviewCount:50, bio:'擁有十年縣長經驗的專業師爺，擅長裝糊塗，以耐心和栽贓的方式，幫助麻匪獲取鵝城' },
-      { id:'coach2', name:'李教練', category:'直排輪', imageUrl:'skate.png', rating:4.5, reviewCount:35, bio:'國際直排輪協會認證教練，專精於競速與花式直排輪，教學風格活潑有趣，能快速提升學生的平衡感與技術。' },
-      { id:'coach3', name:'陳老師', category:'鋼琴', imageUrl:'piano.png', rating:5.0, reviewCount:88, bio:'畢業於音樂學院，具備豐富的鋼琴教學經驗。從古典到流行，能根據學生興趣客製化課程，培養學生的音樂素養與演奏能力。' },
-      { id:'coach4', name:'張老師', category:'舞蹈', imageUrl:'dance.png', rating:4.7, reviewCount:62, bio:'國家級舞蹈教師，擅長多種舞風，包括街舞、現代舞及兒童律動。教學充滿熱情，幫助學生找到屬於自己的節奏與自信。' },
-      { id:'coach5', name:'林老師', category:'繪畫', imageUrl:'draw.png', rating:4.9, reviewCount:41, bio:'專職美術家，曾多次舉辦個人畫展。教學著重於啟發學生的創造力，從基礎素描到多元媒材，引導學生自由揮灑色彩。' },
-      { id:'coach6', name:'黃四郎', category:'游泳', imageUrl:'img2.jpg', rating:4.6, reviewCount:27, bio:'鵝城當地鄉紳，斂財經驗豐富，擅長栽贓、掠奪等政治的專業技能，能有效控制鵝城縣民的民怨，提升斂財效率。' },
-      { id:'coach7', name:'周教練', category:'直排輪', imageUrl:'skate.png', rating:4.4, reviewCount:19, bio:'台灣直排輪聯盟認證教練，致力於推廣直排輪運動。教學以安全為首，從基本動作到進階花式，讓學生在享受樂趣的同時安全學習。' },
-    ];
+                        <div id="category-tabs-container" class="scroll-container relative pb-2 overflow-x-auto">
+                            <div id="category-tabs" class="flex space-x-4 lg:grid lg:grid-cols-5 lg:gap-4 lg:space-x-0 lg:overflow-x-hidden">
+                                <button data-category="游泳" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
+                                    <img src="swim.png" alt="游泳" class="w-14 h-14 category-icon lg:w-10 lg:h-10">
+                                    <span class="tab-text text-gray-800 text-xs lg:text-xs">游泳</span>
+                                </button>
+                                <button data-category="直排輪" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
+                                    <img src="skate.png" alt="直排輪" class="w-14 h-14 category-icon lg:w-10 lg:h-10">
+                                    <span class="tab-text text-gray-800 text-xs lg:text-xs">直排輪</span>
+                                </button>
+                                <button data-category="鋼琴" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
+                                    <img src="piano.png" alt="鋼琴" class="w-14 h-14 category-icon lg:w-10 lg:h-10">
+                                    <span class="tab-text text-gray-800 text-xs lg:text-xs">音樂</span>
+                                </button>
+                                <button data-category="舞蹈" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
+                                    <img src="dance.png" alt="舞蹈" class="w-14 h-14 category-icon lg:w-10 lg:h-10">
+                                    <span class="tab-text text-gray-800 text-xs lg:text-xs">舞蹈</span>
+                                </button>
+                                <button data-category="繪畫" class="tab-button bg-white rounded-lg p-2 flex-shrink-0 flex flex-col items-center justify-center space-y-1 shadow hover:bg-blue-500 hover:text-white lg:p-3">
+                                    <img src="draw.png" alt="繪畫" class="w-14 h-14 category-icon lg:w-10 lg:h-10">
+                                    <span class="tab-text text-gray-800 text-xs lg:text-xs">繪畫</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
-    // ===== DOM =====
-    const categoryTabsContainer = document.getElementById('category-tabs-container');
-    const categoryTabs = document.getElementById('category-tabs');
-    const coachList = document.getElementById('coach-list');
-    const scrollArrowLeft = document.getElementById('scroll-arrow-left');
-    const scrollArrowRight = document.getElementById('scroll-arrow-right');
-    const scrollGradientLeft = document.getElementById('scroll-gradient-left');
-    const scrollGradientRight = document.getElementById('scroll-gradient-right');
-    const menuToggle = document.getElementById('menu-toggle');
-    const mobileMenu = document.getElementById('mobile-menu');
-    const menuClose = document.getElementById('menu-close');
-    const menuOverlay = document.getElementById('menu-overlay');
+                    <div id="coach-list" class="grid grid-cols-1 gap-6"></div>
+                </section>
 
-    // ===== Render =====
-    function renderCoaches(category){
-      coachList.innerHTML = '';
-      const filtered = category === '' ? allCoaches : allCoaches.filter(c => c.category === category);
-      if (!filtered.length){
-        coachList.innerHTML = '<div class="col-span-full text-center text-gray-500 py-12">此類別目前沒有教練。</div>';
-        return;
-      }
-      filtered.forEach(coach => {
-        const card = document.createElement('div');
-        card.className = 'coach-card bg-white/95 backdrop-blur p-4 md:p-6 rounded-xl space-y-4 shadow-md flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6';
-        card.innerHTML = `
-          <div class="flex items-start gap-4 md:gap-6 flex-1">
-            <div class="w-16 h-16 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-gray-100 flex-shrink-0">
-              <img src="${coach.imageUrl}" alt="教練照片" class="w-full h-full object-cover">
-            </div>
-            <div class="flex-1 space-y-2">
-              <h3 class="text-xl md:text-2xl font-bold text-gray-800">${coach.name}</h3>
-              <p class="text-gray-600 text-sm">家長評價: <span class="text-yellow-500">★</span> ${coach.rating} (已有 ${coach.reviewCount} 評論)</p>
-              <p class="text-gray-600 mt-2 text-xs md:text-sm">${coach.bio}</p>
-            </div>
-          </div>
-          <div>
-            <button onclick="console.log('點擊了教練: ${coach.name}')"
-              class="w-full md:w-auto px-6 py-3 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 transition-colors shadow-md">
-              點選預約
-            </button>
-          </div>
-        `;
-        coachList.appendChild(card);
-      });
-    }
+                <aside class="hidden md:block md:w-72 space-y-6">
+                    <div class="sidebar bg-white/90 backdrop-blur p-6 space-y-4">
+                        <h3 class="text-xl font-semibold text-gray-800">用戶功能</h3>
+                        <div class="user-btn-group">
+                            <button id="desktop-reserve-btn" class="w-full font-bold py-3 rounded-lg shadow-md user-btn" onclick="setActiveButton(this)">查詢/取消預約</button>
+                            <button id="desktop-coach-btn" class="w-full font-bold py-3 rounded-lg shadow-md user-btn" onclick="setActiveButton(this)">教練專區</button>
+                        </div>
+                    </div>
+                </aside>
+            </main>
 
-    // ===== Scroll arrows =====
-    const updateScrollArrows = () => {
-      const el = categoryTabsContainer;
-      if(!el) return;
-      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
-      const atStart = el.scrollLeft === 0;
-      (atStart ? scrollArrowLeft.classList.add('hidden') : scrollArrowLeft.classList.remove('hidden'));
-      (atStart ? scrollGradientLeft.classList.add('hidden') : scrollGradientLeft.classList.remove('hidden'));
-      (atEnd ? scrollArrowRight.classList.add('hidden') : scrollArrowRight.classList.remove('hidden'));
-      (atEnd ? scrollGradientRight.classList.add('hidden') : scrollGradientRight.classList.remove('hidden'));
-    };
+        </div></div><script>
+        // ===== Demo 資料 =====
+        const allCoaches = [
+            { id:'coach1', name:'馬邦德', category:'游泳', imageUrl:'img.jpg',    rating:4.8, reviewCount:50, bio:'擁有十年縣長經驗的專業師爺，擅長裝糊塗，以耐心和栽贓的方式，幫助麻匪獲取鵝城' },
+            { id:'coach2', name:'李教練', category:'直排輪', imageUrl:'skate.png', rating:4.5, reviewCount:35, bio:'國際直排輪協會認證教練，專精於競速與花式直排輪，教學風格活潑有趣，能快速提升學生的平衡感與技術。' },
+            { id:'coach3', name:'陳老師', category:'鋼琴', imageUrl:'piano.png', rating:5.0, reviewCount:88, bio:'畢業於音樂學院，具備豐富的鋼琴教學經驗。從古典到流行，能根據學生興趣客製化課程，培養學生的音樂素養與演奏能力。' },
+            { id:'coach4', name:'張老師', category:'舞蹈', imageUrl:'dance.png', rating:4.7, reviewCount:62, bio:'國家級舞蹈教師，擅長多種舞風，包括街舞、現代舞及兒童律動。教學充滿熱情，幫助學生找到屬於自己的節奏與自信。' },
+            { id:'coach5', name:'林老師', category:'繪畫', imageUrl:'draw.png', rating:4.9, reviewCount:41, bio:'專職美術家，曾多次舉辦個人畫展。教學著重於啟發學生的創造力，從基礎素描到多元媒材，引導學生自由揮灑色彩。' },
+            { id:'coach6', name:'黃四郎', category:'游泳', imageUrl:'img2.jpg', rating:4.6, reviewCount:27, bio:'鵝城當地鄉紳，斂財經驗豐富，擅長栽贓、掠奪等政治的專業技能，能有效控制鵝城縣民的民怨，提升斂財效率。' },
+            { id:'coach7', name:'周教練', category:'直排輪', imageUrl:'skate.png', rating:4.4, reviewCount:19, bio:'台灣直排輪聯盟認證教練，致力於推廣直排輪運動。教學以安全為首，從基本動作到進階花式，讓學生在享受樂趣的同時安全學習。' },
+        ];
 
-    scrollArrowLeft?.addEventListener('click', () => categoryTabsContainer.scrollBy({ left: -200, behavior: 'smooth' }));
-    scrollArrowRight?.addEventListener('click', () => categoryTabsContainer.scrollBy({ left:  200, behavior: 'smooth' }));
+        // ===== DOM =====
+        const categoryTabsContainer = document.getElementById('category-tabs-container');
+        const categoryTabs = document.getElementById('category-tabs');
+        const coachList = document.getElementById('coach-list');
+        const scrollArrowLeft = document.getElementById('scroll-arrow-left');
+        const scrollArrowRight = document.getElementById('scroll-arrow-right');
+        const scrollGradientLeft = document.getElementById('scroll-gradient-left');
+        const scrollGradientRight = document.getElementById('scroll-gradient-right');
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuClose = document.getElementById('menu-close');
+        const menuOverlay = document.getElementById('menu-overlay');
 
-    categoryTabs.addEventListener('click', (e) => {
-      const targetButton = e.target.closest('.tab-button');
-      if (!targetButton) return;
-      document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('active');
-        btn.querySelector('.tab-text').classList.remove('text-white','text-blue-500');
-        btn.querySelector('.tab-text').classList.add('text-gray-800');
-      });
-      targetButton.classList.add('active');
-      targetButton.querySelector('.tab-text').classList.remove('text-gray-800');
-      targetButton.querySelector('.tab-text').classList.add('text-white');
-      renderCoaches(targetButton.dataset.category);
-    });
+        const desktopReserveBtn = document.getElementById('desktop-reserve-btn');
+        const desktopCoachBtn = document.getElementById('desktop-coach-btn');
+        const mobileReserveBtn = document.getElementById('mobile-reserve-btn');
+        const mobileCoachBtn = document.getElementById('mobile-coach-btn');
 
-    // 初始
-    const firstTab = categoryTabs.querySelector('.tab-button');
-    if (firstTab){
-      firstTab.classList.add('active');
-      firstTab.querySelector('.tab-text').classList.remove('text-gray-800');
-      firstTab.querySelector('.tab-text').classList.add('text-white');
-      renderCoaches(firstTab.dataset.category);
-    }
+        // ===== Render =====
+        function renderCoaches(category){
+            coachList.innerHTML = '';
+            const filtered = category === '' ? allCoaches : allCoaches.filter(c => c.category === category);
+            if (!filtered.length){
+                coachList.innerHTML = '<div class="col-span-full text-center text-gray-500 py-12">此類別目前沒有教練。</div>';
+                return;
+            }
+            filtered.forEach(coach => {
+                const card = document.createElement('div');
+                card.className = 'coach-card bg-white/95 backdrop-blur p-4 md:p-6 rounded-xl space-y-4 shadow-md flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6';
+                card.innerHTML = `
+                    <div class="flex items-start gap-4 md:gap-6 flex-1">
+                        <div class="w-16 h-16 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-gray-100 flex-shrink-0">
+                            <img src="${coach.imageUrl}" alt="教練照片" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1 space-y-2">
+                            <h3 class="text-xl md:text-2xl font-bold text-gray-800">${coach.name}</h3>
+                            <p class="text-gray-600 text-sm">家長評價: <span class="text-yellow-500">★</span> ${coach.rating} (已有 ${coach.reviewCount} 評論)</p>
+                            <p class="text-gray-600 mt-2 text-xs md:text-sm">${coach.bio}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <button onclick="console.log('點擊了教練: ${coach.name}')"
+                            class="w-full md:w-auto px-6 py-3 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 transition-colors shadow-md">
+							  <a href="reservation.html">點選預約</a>
+                        </button>
+                    </div>
+                `;
+                coachList.appendChild(card);
+            });
+        }
 
-    // Mobile menu
-    function toggleMenu(){
-      mobileMenu.classList.toggle('open');
-      menuOverlay.classList.toggle('open');
-      document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : 'auto';
-    }
-    menuToggle?.addEventListener('click', toggleMenu);
-    menuClose?.addEventListener('click', toggleMenu);
-    menuOverlay?.addEventListener('click', toggleMenu);
+        // ===== Scroll arrows =====
+        const updateScrollArrows = () => {
+            const el = categoryTabsContainer;
+            if(!el) return;
+            const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
+            const atStart = el.scrollLeft === 0;
+            (atStart ? scrollArrowLeft.classList.add('hidden') : scrollArrowLeft.classList.remove('hidden'));
+            (atStart ? scrollGradientLeft.classList.add('hidden') : scrollGradientLeft.classList.remove('hidden'));
+            (atEnd ? scrollArrowRight.classList.add('hidden') : scrollArrowRight.classList.remove('hidden'));
+            (atEnd ? scrollGradientRight.classList.add('hidden') : scrollGradientRight.classList.remove('hidden'));
+        };
 
-    categoryTabsContainer.addEventListener('scroll', updateScrollArrows);
-    window.addEventListener('load', () => { updateScrollArrows(); window.addEventListener('resize', updateScrollArrows); });
-  </script>
+        scrollArrowLeft?.addEventListener('click', () => categoryTabsContainer.scrollBy({ left: -200, behavior: 'smooth' }));
+        scrollArrowRight?.addEventListener('click', () => categoryTabsContainer.scrollBy({ left:  200, behavior: 'smooth' }));
+
+        categoryTabs.addEventListener('click', (e) => {
+            const targetButton = e.target.closest('.tab-button');
+            if (!targetButton) return;
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+                btn.querySelector('.tab-text').classList.remove('text-white','text-blue-500');
+                btn.querySelector('.tab-text').classList.add('text-gray-800');
+            });
+            targetButton.classList.add('active');
+            targetButton.querySelector('.tab-text').classList.remove('text-gray-800');
+            targetButton.querySelector('.tab-text').classList.add('text-white');
+            renderCoaches(targetButton.dataset.category);
+        });
+
+        // 初始
+        const firstTab = categoryTabs.querySelector('.tab-button');
+        if (firstTab){
+            firstTab.classList.add('active');
+            firstTab.querySelector('.tab-text').classList.remove('text-gray-800');
+            firstTab.querySelector('.tab-text').classList.add('text-white');
+            renderCoaches(firstTab.dataset.category);
+        }
+
+        // Mobile menu
+        function toggleMenu(){
+            mobileMenu.classList.toggle('open');
+            menuOverlay.classList.toggle('open');
+            document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : 'auto';
+        }
+        menuToggle?.addEventListener('click', toggleMenu);
+        menuClose?.addEventListener('click', toggleMenu);
+        menuOverlay?.addEventListener('click', toggleMenu);
+
+        categoryTabsContainer.addEventListener('scroll', updateScrollArrows);
+        window.addEventListener('load', () => { updateScrollArrows(); window.addEventListener('resize', updateScrollArrows); });
+
+        // ===== 新增: 用戶功能按鈕點擊反白效果 =====
+        function setActiveButton(element) {
+            // 判斷是桌面版還是手機版
+            const isDesktop = element.id.startsWith('desktop');
+            const isMobile = element.id.startsWith('mobile');
+
+            // 移除所有桌面版按鈕的 active 狀態
+            desktopReserveBtn.classList.remove('active');
+            desktopCoachBtn.classList.remove('active');
+            
+            // 移除所有手機版按鈕的 active 狀態
+            mobileReserveBtn.classList.remove('active');
+            mobileCoachBtn.classList.remove('active');
+
+            // 根據點擊的按鈕來同步更新兩個平台的 active 狀態
+            if (isDesktop) {
+                element.classList.add('active');
+                if (element.id === 'desktop-reserve-btn') {
+                    mobileReserveBtn.classList.add('active');
+                } else {
+                    mobileCoachBtn.classList.add('active');
+                }
+            } else if (isMobile) {
+                element.classList.add('active');
+                if (element.id === 'mobile-reserve-btn') {
+                    desktopReserveBtn.classList.add('active');
+                } else {
+                    desktopCoachBtn.classList.add('active');
+                }
+            }
+        }
+        // 頁面載入時預設讓「查詢/取消預約」為 active
+        window.addEventListener('load', () => {
+            desktopReserveBtn.classList.add('active');
+            mobileReserveBtn.classList.add('active');
+        });
+    </script>
 </body>
 </html>
-
-
